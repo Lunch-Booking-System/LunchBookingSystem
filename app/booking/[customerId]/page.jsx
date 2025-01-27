@@ -54,8 +54,12 @@ const getDayOfWeek = (date) => {
   return days[new Date(date).getDay()];
 };
 
+//Hardcoded Locations
+const locations = ["Sai Radhe Complex", "Location 2", "Location 3"];
+
 const Page = () => {
   const [selectedDate, setSelectedDate] = useState({ date: "", day: "" });
+  const [selectedLocation, setSelectedLocation] = useState(locations[0]);
   const [orders, setOrders] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -141,6 +145,9 @@ const Page = () => {
     fetchOrders(date);
   };
 
+  const handleLocationChange = (e) => {
+    setSelectedLocation(e.target.value);
+  };
   return (
     <>
       <Navbar />
@@ -153,6 +160,21 @@ const Page = () => {
             onChange={handleDateChange}
             className="border rounded-lg p-2 w-72"
           />
+
+<select
+  value={selectedLocation}
+  onChange={handleLocationChange}
+  className="border rounded-lg p-2 w-72"
+>
+  {locations.map((location, index) => (
+    <option key={index} value={location}>
+      {location}
+    </option>
+  ))}
+</select>
+
+
+
         </div>
         {/* <p className="flex justify-center bg-red-600 p-1 text-white">
           <TriangleAlert className="mx-1" />
