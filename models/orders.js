@@ -5,70 +5,70 @@ const orderSchema = new Schema(
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",
-      required: true
+      required: true,
     },
     items: [
       {
         itemId: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,
-          refPath: "items.itemType"
+          refPath: "items.itemType",
         },
         itemType: {
           type: String,
           enum: ["Menu", "Snack"],
-          required: true
+          required: true,
         },
         category: {
           type: String,
-          enum: ["WeeklyMenu", "BreakFast", "AllDaySnacks"], 
-          required: true
+          enum: ["WeeklyMenu", "BreakFast", "AllDaySnacks"],
+          required: true,
         },
         quantity: {
           type: Number,
-          default: 1
+          default: 1,
         },
         price: {
           type: Number,
-          required: true
-        }
-      }
+          required: true,
+        },
+      },
     ],
     totalAmount: {
       type: Number,
-      required: true
+      required: true,
     },
     orderDate: {
       date: {
         type: Number,
-        required: true
+        required: true,
       },
       dayName: {
         type: String,
-        required: true
+        required: true,
       },
       month: {
         type: String,
-        required: true
+        required: true,
       },
       year: {
         type: Number,
-        required: true
-      }
+        required: true,
+      },
     },
     status: {
       type: String,
-      default: "Pending"
+      default: "Pending",
     },
     paymentStatus: {
       type: String,
-      default: "Pending"
-    }
+      default: "Pending",
+    },
   },
   { timestamps: true }
 );

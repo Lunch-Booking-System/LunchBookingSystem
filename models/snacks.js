@@ -5,36 +5,36 @@ const snacksSchema = new Schema(
     itemName: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
     description: {
       type: String,
-      required: false
+      required: false,
     },
     category: {
       type: String,
-      required: true
+      required: true,
     },
     type: {
       type: String,
-      required: true
+      required: true,
     },
     imageUrl: {
       type: String,
-      required: true
+      required: true,
     },
     price: {
       type: Number,
-      required: true
+      required: true,
     },
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",
-      required: true
-    }
+      required: true,
+    },
   },
   { timestamps: true }
 );
 
-const Snacks = models.Snack || mongoose.model("Snack", snacksSchema); 
-export default Snacks;
+const Snack = models.Snack || mongoose.model("Snack", snacksSchema);
+export default Snack;

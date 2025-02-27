@@ -34,9 +34,20 @@ const Page = () => {
   }, [vendorId]);
 
   const getMenuItems = async () => {
-    const res = await fetch("/api/getMenuItems");
-    const data = await res.json();
-    setMenuItems(data);
+    try {
+      const res = await fetch(`/api/vendor/getMenuItems?vendorId=${vendorId}`);
+      if (!res.ok) {
+        const error = await res.json();
+        toast.error(error.message || "Failed to fetch menu items");
+        return;
+      }
+      const data = await res.json();
+      setMenuItems(data);
+    } catch (error) {
+      console.error("Error fetching menu items:", error);
+      toast.error("Failed to fetch menu items");
+      setMenuItems([]); // Set empty array on error
+    }
   };
 
   const handleEdit = (updatedItem) => {

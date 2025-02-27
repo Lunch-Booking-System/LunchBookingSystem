@@ -9,12 +9,12 @@ export async function POST(req) {
     const body = await req.json();
     const { customer, vendor, items, totalAmount, orderDate } = body;
 
-    if (!customer || !vendor || !items || !totalAmount || !orderDate) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
+    // if (!customer || !vendor || !items || !totalAmount || !orderDate) {
+    //   return NextResponse.json(
+    //     { error: "Missing required fields" },
+    //     { status: 400 }
+    //   );
+    // }
 
     const newOrder = await Orders.create({
       customer,

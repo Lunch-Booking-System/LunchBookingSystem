@@ -1,7 +1,9 @@
 "use client"
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const VendorForm = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -37,13 +39,13 @@ const VendorForm = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email:formData.email }),
+          body: JSON.stringify({ email: formData.email }),
         });
   
-        const { vendor } = await resVendorExists.json();
+        const { exists } = await resVendorExists.json();
   
-        if (vendor) {
-          setError("Vendor already exists.");
+        if (exists) {
+          setError("A vendor with this email already exists.");
           return;
         }
   

@@ -33,25 +33,38 @@ const OrderCard = ({ order }) => {
         <ul className="list-disc ml-4">
           {order.items.map((item) => (
             <div
-            key={item._id}
-            className="flex items-center p-4 border rounded-lg shadow-sm"
-          >
-            <img
-              src={item.itemId.imageUrl}
-              alt={item.itemId.itemName}
-              className="w-24 h-24 rounded-lg object-cover mr-5"
-            />
-            <div>
-              <h3 className="text-lg font-medium">{item.itemId.itemName}</h3>
-              <p className="font-semibold">₹{item.itemId.price}</p>
-              <p>
-                Quantity: <span className="font-bold">{item.quantity}</span>
-              </p>
+              key={item._id}
+              className="flex items-center p-4 border rounded-lg shadow-sm"
+            >
+              {item.itemId ? (
+                <>
+                  <img
+                    src={item.itemId.imageUrl}
+                    alt={item.itemId.itemName}
+                    className="w-24 h-24 rounded-lg object-cover mr-5"
+                  />
+                  <div>
+                    <h3 className="text-lg font-medium">{item.itemId.itemName}</h3>
+                    <p className="font-semibold">₹{item.itemId.price}</p>
+                    <p>
+                      Quantity: <span className="font-bold">{item.quantity}</span>
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center">
+                  <div className="w-24 h-24 bg-gray-200 rounded-lg mr-5 flex items-center justify-center">
+                    <span className="text-gray-400">No image</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-400">Item unavailable</h3>
+                    <p>
+                      Quantity: <span className="font-bold">{item.quantity}</span>
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-            // <li key={item._id} className="text-sm">
-            //   {item.category} - {item.quantity} x ₹{item.price}
-            // </li>
           ))}
         </ul>
       </div>
@@ -103,7 +116,7 @@ export default function Page() {
         const response = await fetch(`/api/getAllOrders?customerId=${customerId}`);
         const data = await response.json();
         setOrdersGrouped(data);
-        console.log(data)
+        console.log("data",data)
       } catch (error) {
         console.error("Error fetching orders", error);
       } finally {
