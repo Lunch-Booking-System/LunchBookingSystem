@@ -6,7 +6,7 @@ export async function PATCH(req, { params }) {
   await connectMongoDB();
 
   const { orderId } = params; // Extract orderId from the dynamic route
-    console.log(orderId);
+    // console.log(orderId);
   try {
     const order = await Orders.findById(orderId);
 

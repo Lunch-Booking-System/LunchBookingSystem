@@ -24,7 +24,7 @@ const VendorNavbar = () => {
       router.push("/onboardingvendor/login")
     }
     const {sessionId} = JSON.parse(session);
-    console.log(sessionId)
+    // console.log(sessionId)
     const vendorId = sessionId;
     router.push(`/menu/${vendorId}`)
   }
@@ -35,7 +35,7 @@ const VendorNavbar = () => {
       router.push("/onboardingvendor/login")
     }
     const {sessionId} = JSON.parse(session);
-    console.log(sessionId)
+    // console.log(sessionId)
     const vendorId = sessionId;
     router.push(`/dashboard/${vendorId}`)
   }

@@ -36,6 +36,7 @@ const Page = () => {
   const getMenuItems = async () => {
     const res = await fetch("/api/getMenuItems");
     const data = await res.json();
+    console.log(data)
     setMenuItems(data);
   };
 

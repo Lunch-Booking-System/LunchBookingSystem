@@ -1,80 +1,220 @@
 "use client";
-
-import { ArrowLeft } from "lucide-react";
+import Navbar from "@/components/Navbar";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import LoadingGif from "../../../assets/LoadingComponentImage.gif";
+import Image from "next/image";
+import toast from "react-hot-toast";
+import { CheckCircle, AlertTriangle, CheckCheck } from "lucide-react";
+import QRModal from "@/components/QRmodal";
+import Link from "next/link";
+
+export default function Page() {
+  const { customerId } = useParams();
+  // console.log(customerId)
+  const [ordersGrouped, setOrdersGrouped] = useState({});
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(
+          `/api/getAllOrders?customerId=${customerId}`
+        );
+        const data = await response.json();
+        const sortedOrders = Object.fromEntries(Object.entries(data).reverse());
+        setOrdersGrouped(sortedOrders);
+        // console.log(sortedOrders)
+        // console.log(data)
+      } catch (error) {
+        console.error("Error fetching orders", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  if (loading)
+    return (
+      <div className="min-h-screen text-center text-lg font-semibold">
+        <Image
+          src={LoadingGif}
+          className="md:ml-[35%] mt-[55%] md:mt-[15%]"
+          alt="loader"
+        />
+      </div>
+    );
+
+  if (!Object.keys(ordersGrouped).length)
+    return (
+      <div className="">
+        <Navbar />
+        <div className="my-4 mt-12 md:mt-8 ml-0 md:ml-[33%]">
+          <img
+            src="https://spicescreen.com/reactspicejetserver/Profilepages/Images/mallnotFound.jpg"
+            className="ml-4 rounded-xl w-[350px] h-[400px] md:w-[500px] md:h-[500px]"
+          />
+        </div>
+        <Link
+          href={`/booking/${customerId}/breakfast`}
+          className="my-4 flex items-center justify-center font-extrabold"
+        >
+          <button className="rounded-xl bg-red-600 px-5 py-2 text-white text-xl ">Order Now</button>
+          
+        </Link>
+      </div>
+    );
+
+  return (
+    <>
+      <Navbar />
+      <div className="min-h-screen mt-10 p-4">
+        <div className="max-w-3xl mx-auto">
+          {/* <ArrowLeft
+          size={30}
+          onClick={() => router.back()}
+          className="cursor-pointer mb-4"
+        /> */}
+          {Object.entries(ordersGrouped).map(([dateKey, orders]) => (
+            <OrderGroupCard key={dateKey} dateKey={dateKey} orders={orders} />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
 
 const OrderCard = ({ order }) => {
   const router = useRouter();
+  const { customerId } = useParams();
+  const [showQRModal, setShowQRModal] = useState(false);
 
-  const handlePrimaryAction = () => {
-    if (order.paymentStatus === "Paid") {
-      router.push(`/qr/${order._id}`);
-    } else {
-      router.push(`/checkout/${order._id}`);
+  const handleCancelOrder = async (orderId) => {
+    // console.log(orderId);
+    if (!orderId) {
+      toast.error("No order to cancel.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/cancelOrder/${orderId}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Order cancelled successfully!");
+        window.location.reload();
+      } else {
+        toast.error("Failed to cancel order: " + data.message);
+      }
+    } catch (error) {
+      console.error("Cancel Order Error:", error);
+      toast.error("An error occurred while cancelling the order.");
     }
   };
 
-  const handleCancel = () => {
-    // Add your cancel logic here, e.g., call an API to cancel the order.
-    alert("Cancel order: " + order._id);
+  const handleCheckoutNavigation = () => {
+    router.push(`/checkout/${order._id}`);
   };
 
   return (
     <div className="border p-4 rounded-lg mb-4 shadow-sm">
       <div className="flex justify-between md:items-center">
         <div>
-          <p className="font-semibold">Order ID: {order._id}</p>
-          <p className="text-sm">Total: ₹<span className="font-bold"> {order.totalAmount}</span></p>
+          <p className="font-semibold text-sm">Order ID: {order._id}</p>
+          <p className="">
+            Total: ₹<span className="font-bold"> {order.totalAmount}</span>
+          </p>
         </div>
       </div>
       <div className="my-2">
-        <p className="text-xl font-medium my-1">Items:</p>
+        <p className="text-xl font-medium my-1">Cart :</p>
         <ul className="list-disc ml-4">
           {order.items.map((item) => (
             <div
-            key={item._id}
-            className="flex items-center p-4 border rounded-lg shadow-sm"
-          >
-            <img
-              src={item?.itemId?.imageUrl}
-              alt={item?.itemId?.itemName}
-              className="w-24 h-24 rounded-lg object-cover mr-5"
-            />
-            <div>
-              <h3 className="text-lg font-medium">{item?.itemId?.itemName}</h3>
-              <p className="font-semibold">₹{item?.itemId?.price}</p>
-              <p>
-                Quantity: <span className="font-bold">{item.quantity}</span>
-              </p>
+              key={item._id}
+              className="flex items-center p-4 border rounded-lg shadow-sm"
+            >
+              <img
+                src={item?.itemId?.imageUrl}
+                alt={item?.itemId?.itemName}
+                className="w-24 h-24 rounded-lg object-cover mr-5"
+              />
+              <div>
+                <h3 className="text-lg font-medium">
+                  {item?.itemId?.itemName}
+                </h3>
+                <p className="font-semibold">₹{item?.itemId?.price}</p>
+                <p>
+                  Quantity: <span className="font-bold">{item.quantity}</span>
+                </p>
+              </div>
             </div>
-          </div>
             // <li key={item._id} className="text-sm">
             //   {item.category} - {item.quantity} x ₹{item.price}
             // </li>
           ))}
         </ul>
       </div>
-      <div className="space-x-2 mt-5">
-          <button
-            onClick={handlePrimaryAction}
-            className={`py-1 px-3 rounded-md text-sm font-semibold ${
-              order.paymentStatus === "Paid"
-                ? "bg-green-500 hover:bg-green-600"
-                : "bg-blue-500 hover:bg-blue-600"
-            } text-white`}
-          >
-            {order.paymentStatus === "Paid" ? "QR" : "Checkout"}
-          </button>
-          {order.paymentStatus !== "Paid" && (
-            <button
-              onClick={handleCancel}
-              className="py-1 px-3 rounded-md text-sm font-semibold bg-red-500 hover:bg-red-600 text-white"
-            >
-              Cancel
-            </button>
-          )}
+
+      {order.paymentStatus === "Paid" ? (
+        order.status === "Received" ? (
+          <></>
+        ) : (
+          <div className="flex items-center gap-2 text-green-600 font-semibold mt-5">
+            <CheckCircle className="w-5 h-5" />
+            <p>Payment Done you can take your order using the QR button</p>
+          </div>
+        )
+      ) : (
+        <div className="flex items-center gap-2 text-red-600 font-semibold mt-5">
+          <AlertTriangle className="w-5 h-5" />
+          <p>
+            To confirm order, you need to pay first click on Checkout button
+          </p>
         </div>
+      )}
+
+      <div className="flex space-x-2 mt-3">
+        {order.paymentStatus === "Paid" ? (
+          order.status === "Received" ? (
+            <p className=" flex text-green-600 font-semibold my-4 text-lg">
+              <CheckCheck className="mr-1" />
+              You have received your order
+            </p>
+          ) : (
+            <button
+              onClick={() => setShowQRModal(true)}
+              className={`py-1 px-5 rounded-md text-lg font-semibold bg-green-500 hover:bg-green-600 text-white`}
+            >
+              QR
+            </button>
+          )
+        ) : (
+          <button
+            onClick={handleCheckoutNavigation}
+            className={`py-1 px-3 rounded-md text-lg font-semibold bg-blue-500 hover:bg-blue-600
+        text-white`}
+          >
+            Checkout
+          </button>
+        )}
+
+        {order.paymentStatus !== "Paid" && (
+          <button
+            onClick={() => handleCancelOrder(order._id)}
+            className="py-1 px-3 rounded-md text-lg font-semibold bg-red-500 hover:bg-red-600 text-white"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
+      {showQRModal && (
+        <QRModal orderId={customerId} onClose={() => setShowQRModal(false)} />
+      )}
     </div>
   );
 };
@@ -89,48 +229,3 @@ const OrderGroupCard = ({ dateKey, orders }) => {
     </div>
   );
 };
-
-export default function Page() {
-  const {customerId} = useParams()
-  // console.log(customerId)
-  const [ordersGrouped, setOrdersGrouped] = useState({});
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await fetch(`/api/getAllOrders?customerId=${customerId}`);
-        const data = await response.json();
-        setOrdersGrouped(data);
-        console.log(data)
-      } catch (error) {
-        console.error("Error fetching orders", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, []);
-
-  if (loading) return <p className="text-center mt-5">Loading...</p>;
-
-  if (!Object.keys(ordersGrouped).length)
-    return <p className="text-center text-gray-500 mt-10">No orders found.</p>;
-
-  return (
-    <div className="min-h-screen mt-20 p-4">
-      <div className="max-w-3xl mx-auto">
-        <ArrowLeft
-          size={30}
-          onClick={() => router.back()}
-          className="cursor-pointer mb-4"
-        />
-        {Object.entries(ordersGrouped).map(([dateKey, orders]) => (
-          <OrderGroupCard key={dateKey} dateKey={dateKey} orders={orders} />
-        ))}
-      </div>
-    </div>
-  );
-}

@@ -1,7 +1,6 @@
 import { connectMongoDB } from '@/lib/mongodb';
 import Menu from '@/models/menu';
 
-
 export async function GET() {
     try {
         await connectMongoDB();

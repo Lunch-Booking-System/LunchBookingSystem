@@ -9,7 +9,7 @@ const MenuCard = ({ item, onOrder, onRemove, dayName }) => {
   };
 
   return (
-    <div key={item._id} className="mb-5 shadow-xl rounded-2xl mx-1 p-2 md:w-[350px]">
+    <div key={item._id} className="mb-5 shadow-xl rounded-2xl mx-1 p-2 md:w-[280px] lg:w-[350px] border border-slate-100">
       <img
         src={item.imageUrl}
         className="rounded-xl shadow-xl h-[150px] w-full object-cover"
@@ -36,10 +36,10 @@ const MenuCard = ({ item, onOrder, onRemove, dayName }) => {
             </button>
           </span>
         </h3>
-        <p className=" text-md text-gray-400">{item.description}</p>
+        {/* <p className=" text-md text-gray-400">{item.description}</p> */}
       </div>
 
-      <div className="mt-2">
+      <div className="my-2">
         <div className="flex justify-center space-x-10 md:space-x-4">
           <button
             onClick={() => onRemove(item)}
