@@ -35,10 +35,9 @@ const getDayName = (dayIndex) => {
     "Monday",
     "Tuesday",
     "Wednesday",
-    "Thrusday",
+    "Thursday",
     "Friday",
     "Saturday",
-    "August",
   ];
   return dayNames[dayIndex];
 };
@@ -100,6 +99,8 @@ const BreakfastMenu = () => {
         return [...prevItems, { ...item, quantity }];
       }
     });
+    // toast.dismiss()
+    // toast.success(`Added ${item.itemName} to cart`)
     // console.log(orderItems);
   };
 
@@ -114,8 +115,8 @@ const BreakfastMenu = () => {
         .filter((order) => order.quantity > 0); // Remove if quantity reaches 0
     });
 
-    toast.dismiss();
-    toast.error(`Removed ${item.itemName}`);
+    // toast.dismiss();
+    // toast.error(`Removed ${item.itemName}`);
   };
 
   // const updateQuantity = (item, quantity) => {
@@ -239,6 +240,7 @@ const BreakfastMenu = () => {
             item={item}
             onOrder={onOrder}
             onRemove={onRemove}
+            isAdded={orderItems.some((orderItem)=> orderItem._id === item._id )}
           />
         ))}
       </div>
@@ -258,17 +260,7 @@ const BreakfastMenu = () => {
               </div>
             </div>
             <div className="md:flex justify-evenly">
-              {/* <p className="text-[16px] md:text-2xl font-bold md:mx-2 md:px-5 py-3">
-                Total Amount: ₹{calculateTotalPrice()}
-              </p> */}
               <div className="flex md:block">
-                {/* <button
-                  onClick={handleClearOrder}
-                  className="md:h-[50px] px-3 md:px-5 py-1 md:py-3 mb-3 text-white rounded-lg font-bold border-2 border-red-500 bg-red-500 hover:bg-white hover:text-red-500"
-                  disabled={loading}
-                >
-                  Clear
-                </button> */}
                 <button
                   onClick={handleOrder}
                   className={`md:h-[50px] mt-2 mx-2 px-3 md:px-5 py-1 mb-2 md:py-3 rounded-lg font-semibold ${
@@ -345,17 +337,11 @@ const BreakfastMenu = () => {
                     <div>
                       {orderItems.length ? <button
                   onClick={handleClearOrder}
-                  className="px-3 py-1 mb-3 mr-5 text-white rounded-lg font-bold border-2 border-red-500 bg-red-500 hover:bg-white hover:text-red-500"
+                  className="px-3 py-1 text-red-500 rounded-lg font-bold border-2 border-red-500 bg-white hover:bg-white hover:text-red-500"
                   disabled={loading}
                 >
                   Clear Cart
                 </button>:<></>}
-                {/* <button
-                      onClick={() => setIsCartOpen(false)}
-                      className="px-4 py-1  text-red-500 rounded-lg font-bold  border-2 border-red-500  hover:text-red-500"
-                    >
-                      Close
-                    </button> */}
                     </div>
                   </div>
                 </Dialog.Panel>

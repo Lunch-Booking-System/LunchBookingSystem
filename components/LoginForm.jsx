@@ -79,7 +79,7 @@ export default function LoginForm() {
             <input 
               onChange={(e) => setPassword(e.target.value)} 
               type={showPassword ? "text" : "password"} 
-              placeholder="Password" 
+              placeholder="Password (Min 8 characters)" 
               className="w-full pr-10"
             />
             <span 

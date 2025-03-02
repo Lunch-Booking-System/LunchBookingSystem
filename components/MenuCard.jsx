@@ -1,15 +1,18 @@
-import { Plus, Minus } from "lucide-react";
+// import { Plus, Minus } from "lucide-react";
 import React, { useState } from "react";
 
-const MenuCard = ({ item, onOrder, onRemove, dayName }) => {
+const MenuCard = ({ item, onOrder, onRemove, dayName,isAdded }) => {
   const [quantity, setQuantity] = useState(1);
-
+  // const [clicked, setClicked] = useState(false);
   const calculateMarkUpPrice = (item) => {
     return item.price + 10;
   };
 
   return (
-    <div key={item._id} className="mb-5 shadow-xl rounded-2xl mx-1 p-2 md:w-[280px] lg:w-[350px] border border-slate-100">
+    <div
+      key={item._id}
+      className="mb-5 shadow-xl rounded-2xl mx-1 p-2 md:w-[280px] lg:w-[350px] border border-slate-100"
+    >
       <img
         src={item.imageUrl}
         className="rounded-xl shadow-xl h-[150px] w-full object-cover"
@@ -41,7 +44,7 @@ const MenuCard = ({ item, onOrder, onRemove, dayName }) => {
 
       <div className="my-2">
         <div className="flex justify-center space-x-10 md:space-x-4">
-          <button
+          {/* <button
             onClick={() => onRemove(item)}
             className="px-4 py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 flex items-center"
           >
@@ -51,18 +54,18 @@ const MenuCard = ({ item, onOrder, onRemove, dayName }) => {
               strokeWidth={"4px"}
               className="ml-2 font-extrabold"
             />
-          </button>
+          </button> */}
 
           <button
             onClick={() => onOrder(item, quantity)}
-            className="px-4 py-3 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 flex items-center"
+            className={`px-4 py-3 text-white rounded-lg font-bold flex items-center transition-colors ${
+              isAdded
+                ? "bg-green-500 hover:bg-green-600"
+                : "bg-orange-500 hover:bg-orange-600"
+            }`}
+            disabled={isAdded}
           >
-            Add{" "}
-            <Plus
-              size={20}
-              strokeWidth={"4px"}
-              className="ml-2 font-extrabold"
-            />
+            {isAdded ? "Added" : "Add to cart +"}
           </button>
         </div>
       </div>
