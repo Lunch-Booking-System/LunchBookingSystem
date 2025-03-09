@@ -5,8 +5,8 @@ import toast from "react-hot-toast";
 import MenuItems from "@/components/MenuItems";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import LoadingGif from "../../../../assets/LoadingComponentImage.gif";
-import Ad from "../../../../assets/Ads.jpeg"
+import LoadingGif from "../../../../../assets/LoadingComponentImage.gif";
+// import Ad from "../../../../assets/Ads.jpeg";
 import OrderDetailsUser from "@/components/OrderDetailsUser";
 
 const getISTDate = () => {
@@ -71,7 +71,7 @@ const Page = () => {
     if (!customer || !localCustomerId || localCustomerId !== customerId) {
       toast.dismiss();
       toast.error("Unauthorized access. Redirecting to login page...");
-      router.push("/onboardingcustomer/login");
+      router.push(`/vendorDashboard/${customerId}`);
     }
   }, [customerId]);
 
@@ -87,7 +87,9 @@ const Page = () => {
   const getMenuItems = async (date) => {
     const [year, month, day] = date.split("-");
     const monthName = getMonthName(parseInt(month) - 1);
-    const res = await fetch(`/api/getWeeklyMenu?date=${day}&month=${monthName}&year=${year}`);
+    const res = await fetch(
+      `/api/getWeeklyMenu?date=${day}&month=${monthName}&year=${year}`
+    );
     const data = await res.json();
     // console.log(data)
     setMenuItems(data.menu);
@@ -133,7 +135,7 @@ const Page = () => {
       setLoading(false);
     }
   };
-  
+
   const handleDateChange = (e) => {
     const date = e.target.value;
     const dayOfWeek = getDayOfWeek(date);
@@ -179,7 +181,7 @@ const Page = () => {
         </div>
 
         <div className="flex flex-col md:flex-row items-center justify-center space-y-4 my-6">
-      {/* <div
+          {/* <div
         className="relative rounded-lg overflow-hidden shadow-lg cursor-pointer"
         onClick={handleClick}
       >
@@ -189,7 +191,7 @@ const Page = () => {
           alt="Personal Loan Banner"
         />
       </div> */}
-    </div>
+        </div>
 
         {loading ? (
           <Image
@@ -206,7 +208,9 @@ const Page = () => {
           </div>
         ) : (
           <div className="p-4 bg-white rounded-lg md:mx-16 mb-28">
-            <h2 className="text-2xl font-bold mb-3 flex justify-center">Menu</h2>
+            <h2 className="text-2xl font-bold mb-3 flex justify-center">
+              Menu
+            </h2>
             <MenuItems menuItems={menuItems} selectedDate={selectedDate} />
           </div>
         )}

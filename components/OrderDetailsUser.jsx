@@ -8,7 +8,7 @@ const OrderDetailsUser = ({ userOrder }) => {
   const { customer, items, totalAmount, orderDate } = userOrder;
   const [showQRModal, setShowQRModal] = useState(false);
   const customerOrderId = userOrder._id;
-  console.log(userOrder)
+  // console.log(userOrder)
 
   const router = useRouter()
 

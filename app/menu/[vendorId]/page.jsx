@@ -34,20 +34,10 @@ const Page = () => {
   }, [vendorId]);
 
   const getMenuItems = async () => {
-    try {
-      const res = await fetch(`/api/vendor/getMenuItems?vendorId=${vendorId}`);
-      if (!res.ok) {
-        const error = await res.json();
-        toast.error(error.message || "Failed to fetch menu items");
-        return;
-      }
-      const data = await res.json();
-      setMenuItems(data);
-    } catch (error) {
-      console.error("Error fetching menu items:", error);
-      toast.error("Failed to fetch menu items");
-      setMenuItems([]); // Set empty array on error
-    }
+    const res = await fetch("/api/getMenuItems");
+    const data = await res.json();
+    console.log(data);
+    setMenuItems(data);
   };
 
   const handleEdit = (updatedItem) => {
@@ -59,7 +49,9 @@ const Page = () => {
   return (
     <>
       <VendorNavbar />
-      <h1 className="flex justify-center text-3xl md:text-4xl my-10 font-bold">Customize Weekly Menu</h1>
+      <h1 className="flex justify-center text-3xl md:text-4xl my-10 font-bold">
+        Customize Weekly Menu
+      </h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
         {menuItems.map((item) => (
           <MenuCard key={item._id} item={item} onEdit={handleEdit} />

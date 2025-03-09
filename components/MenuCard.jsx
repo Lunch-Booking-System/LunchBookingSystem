@@ -1,97 +1,111 @@
-import { Plus, Minus } from "lucide-react";
 import React, { useState } from "react";
-import { Badge } from "./ui/badge";
-
-const nonVegAvailableDays = ["Wednesday", "Friday"];
+import { Plus, Minus } from "lucide-react";
 
 const MenuCard = ({ item, onOrder, onRemove, dayName }) => {
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(0);
+
+  // Guard clause to prevent errors if item is undefined
+  if (!item) {
+    return <div className="p-4 rounded-xl shadow-md border border-gray-100">Loading item...</div>;
+  }
 
   const calculateMarkUpPrice = (item) => {
     return item.price + 10;
   };
 
-  const isNonVegVisible =
-    item.type !== "Non-Veg" || nonVegAvailableDays.includes(dayName);
+  const handleAdd = () => {
+    setQuantity(1);
+    onOrder(item, 1);
+  };
 
-  if (!isNonVegVisible) {
-    return (
-      <div className="shadow-xl rounded-2xl p-2 flex items-center justify-center mb-5">
-        <p className="inline justify-center">
-          Non-Veg Thali is available only on<br></br>
-          <span className="font-bold flex justify-center text-xl">{nonVegAvailableDays.join(" and ")}</span>
-        </p>
-      </div>
-    );
-  }
+  const handleIncrease = () => {
+    setQuantity((prev) => prev + 1);
+    onOrder(item, 1);
+  };
+
+  const handleDecrease = () => {
+    if (quantity > 1) {
+      setQuantity((prev) => prev - 1);
+      onRemove(item);
+    } else {
+      setQuantity(0);
+      onRemove(item);
+    }
+  };
+
+  const markup = calculateMarkUpPrice(item);
+  const discount = Math.round(((markup - item.price) / markup) * 100);
 
   return (
-    <div key={item._id} className="mb-5 shadow-xl rounded-2xl mx-1 p-2 md:w-[350px]">
-      <img
-        src={item.imageUrl}
-        className="rounded-xl shadow-xl h-[150px] w-full object-cover"
-        alt={item.itemName}
-      />
-      <p className="my-2 ml-2">
-        <span className="font-bold text-2xl">₹ {item.price}</span>
-        <span className="line-through text-xl ml-2 text-gray-600">
-          ₹ {calculateMarkUpPrice(item)}
-        </span>
-      </p>
-      <div className="ml-2 my-5">
-        <h3 className="text-xl font-bold mb-2">
-          {item.itemName}
-          <span>
-            <button
-              className={`text-sm ml-2 p-1 border-dashed ${
+    <div className="relative overflow-hidden bg-white rounded-xl shadow-md border border-gray-100 transition-all duration-300 hover:shadow-lg">
+      <div className="relative">
+        {item.imageUrl && (
+          <img
+            src={item.imageUrl}
+            className="h-48 w-full object-cover"
+            alt={item.itemName || "Menu item"}
+          />
+        )}
+        <div className="absolute top-3 right-3 bg-orange-500 px-2 py-1 rounded-md shadow-sm">
+          <span className="text-xs font-bold text-white">{discount}% OFF</span>
+        </div>
+        {item.type && (
+          <div className="absolute bottom-3 left-3">
+            <span
+              className={`text-xs px-2 py-1 rounded-md font-medium ${
                 item.type === "Veg"
-                  ? "bg-green-200 border border-green-400 rounded-xl text-green-700"
-                  : "bg-red-200 border border-red-400 rounded-xl text-red-700"
+                  ? "bg-green-100 text-green-800 border border-green-300"
+                  : "bg-red-100 text-red-800 border border-red-300"
               }`}
             >
               {item.type}
-            </button>
-          </span>
-        </h3>
-        <p className=" text-md text-gray-400">{item.description}</p>
-      </div>
-      <div className="mx-1 mb-5">
-        {item.type === "Veg" ? (
-          <Badge className="ml-2">Available</Badge>
-        ) : (
-          nonVegAvailableDays.map((day) => (
-            <Badge key={day} className="mx-1">
-              {day}
-            </Badge>
-          ))
+            </span>
+          </div>
         )}
       </div>
 
-      <div className="mt-2">
-        <div className="flex justify-center space-x-10 md:space-x-4">
-          <button
-            onClick={() => onRemove(item)}
-            className="px-4 py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 flex items-center"
-          >
-            Remove{" "}
-            <Minus
-              size={20}
-              strokeWidth={"4px"}
-              className="ml-2 font-extrabold"
-            />
-          </button>
+      <div className="p-4">
+        <div className="mb-1">
+          <h3 className="text-lg font-bold text-gray-800 line-clamp-2">
+            {item.itemName || "Untitled Item"}
+          </h3>
+        </div>
 
-          <button
-            onClick={() => onOrder(item, quantity)}
-            className="px-4 py-3 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 flex items-center"
-          >
-            Add{" "}
-            <Plus
-              size={20}
-              strokeWidth={"4px"}
-              className="ml-2 font-extrabold"
-            />
-          </button>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-baseline">
+            <span className="text-xl font-bold text-orange-600">₹{item.price}</span>
+            <span className="ml-2 text-sm line-through text-gray-500">
+              ₹{markup}
+            </span>
+          </div>
+          
+          <div className="flex items-center">
+            {quantity === 0 ? (
+              <button
+                onClick={handleAdd}
+                className="py-1 px-3 bg-orange-500 text-white font-medium rounded-lg text-sm shadow-sm hover:bg-orange-600 focus:outline-none transition-colors duration-200 flex items-center"
+              >
+                <span>ADD</span>
+                <Plus size={16} className="ml-1" strokeWidth={2.5} />
+              </button>
+            ) : (
+              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  onClick={handleDecrease}
+                  className="p-1 bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                >
+                  <Minus size={16} strokeWidth={2.5} />
+                </button>
+                <span className="px-3 font-medium text-gray-800">{quantity}</span>
+                <button
+                  onClick={handleIncrease}
+                  className="p-1 bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                >
+                  <Plus size={16} strokeWidth={2.5} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

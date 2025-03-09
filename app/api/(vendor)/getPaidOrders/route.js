@@ -1,20 +1,19 @@
-import { connectMongoDB } from "@/lib/mongodb";
 import Orders from "@/models/orders";
 import { NextResponse } from "next/server";
-import Snack from "@/models/snacks";
-import Menu from "@/models/menu";
+import Snacks from "@/models/snacks";
 import User from "@/models/user";
-
+import { connectMongoDB } from "@/lib/mongodb";
+// import Menu from "@/models/menu";
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    console.log("Raw URL:", req.url);
-    console.log("Search Params:", Object.fromEntries(searchParams));
+    // console.log("Raw URL:", req.url);
+    // console.log("Search Params:", Object.fromEntries(searchParams));
 
     const vendorId = searchParams.get("vendorId");
     const selectedDate = searchParams.get("selectedDate");
 
-    console.log("Received params:", { vendorId, selectedDate });
+    // console.log("Received params:", { vendorId, selectedDate });
 
     if (!vendorId || !selectedDate) {
       return NextResponse.json(
@@ -27,7 +26,7 @@ export async function GET(req) {
 
     // Create start and end of the selected date for filtering
     const selectedDateObj = new Date(selectedDate);
-    console.log("Parsed date:", selectedDateObj);
+    // console.log("Parsed date:", selectedDateObj);
 
     const startOfDay = new Date(selectedDateObj);
     startOfDay.setHours(0, 0, 0, 0);
@@ -35,23 +34,21 @@ export async function GET(req) {
     const endOfDay = new Date(selectedDateObj);
     endOfDay.setHours(23, 59, 59, 999);
 
-    console.log("Date range:", { startOfDay, endOfDay });
+    // console.log("Date range:", { startOfDay, endOfDay });
 
     // Fetch paid orders for the vendor on the selected date
     const orders = await Orders.find({
       vendor: vendorId,
       paymentStatus: "Paid",
-
       createdAt: { $gte: startOfDay, $lt: endOfDay },
     })
       .populate("customer")
-      
       .populate({
         path: "items.itemId",
         select: "itemName type price imageUrl",
       });
 
-    console.log("Found orders:", orders.length);
+    // console.log("Found orders:", orders.length);
 
     // Calculate summary
     const summary = orders.reduce((acc, order) => {

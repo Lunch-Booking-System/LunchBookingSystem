@@ -24,7 +24,7 @@ export async function GET(req) {
       .populate({
         path: "customer",
         model: User,
-        select: "firstName lastName empId",
+        select: "firstName lastName empId company",
       })
       .populate({
         path: "items.itemId",

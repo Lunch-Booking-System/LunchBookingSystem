@@ -1,24 +1,36 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchOrderDetails } from "./action";
 import LoadingGif from "../../../assets/LoadingComponentImage.gif";
 import Script from "next/script";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { CheckCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle } from "lucide-react";
 
 const Page = () => {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentDone, setPaymentDone] = useState(false);
+  const router = useRouter();
+
+  // useEffect(() => {
+  //   const customer = JSON.parse(localStorage.getItem("customer"));
+  //   const localCustomerId = customer?.customerId;
+
+  //   if (!customer || !localCustomerId || localCustomerId !== customerId) {
+  //     toast.dismiss();
+  //     toast.error("Unauthorized access. Redirecting to login page...");
+  //     router.push("/onboardingcustomer/login");
+  //   }
+  // }, []);
 
   useEffect(() => {
     const orderDetails = async () => {
       try {
         const data = await fetchOrderDetails(orderId);
-        console.log(data);
+        // console.log(data);
         setOrder(data);
         if (data.paymentStatus === "Paid") {
           setPaymentDone(true);
@@ -33,6 +45,12 @@ const Page = () => {
       orderDetails();
     }
   }, [orderId]);
+
+  const handleHomeNavigation = () => {
+    if (order && order.customer && order.customer._id) {
+      router.push(`/myOrders/${order.customer._id}`);
+    }
+  };
 
   const createOrder = async () => {
     const res = await fetch("/api/createOrder", {
@@ -57,10 +75,11 @@ const Page = () => {
           }),
         });
         const data = await res.json();
-        console.log(data);
+        // console.log(data);
         if (data.isOk) {
           setPaymentDone(true);
           toast.success("Payment successful");
+          handleHomeNavigation();
         } else {
           toast.error("Payment failed");
         }
@@ -97,7 +116,9 @@ const Page = () => {
             <strong>Order ID:</strong> {order._id}
           </p>
           <p>
-            <strong>Order Date:</strong> {order.orderDate.dayName}, {order.orderDate.date} {order.orderDate.month} {order.orderDate.year}
+            <strong>Order Date:</strong> {order.orderDate.dayName},{" "}
+            {order.orderDate.date} {order.orderDate.month}{" "}
+            {order.orderDate.year}
           </p>
         </div>
 
@@ -115,7 +136,9 @@ const Page = () => {
               />
               <div>
                 <h3 className="text-lg font-medium">{item.itemId.itemName}</h3>
-                <p className="text-sm text-gray-500">{item.itemId.description}</p>
+                <p className="text-sm text-gray-500">
+                  {item.itemId.description}
+                </p>
                 <p className="font-semibold">₹{item.itemId.price}</p>
                 <p>
                   Quantity: <span className="font-bold">{item.quantity}</span>
@@ -127,7 +150,8 @@ const Page = () => {
         <div className="border border-gray-200 mt-3" />
         <div className="flex justify-between my-5">
           <p className="text-xl mr-10 py-3 font-semibold">
-            Total Amount: <span className="font-extrabold">₹{order.totalAmount}</span>
+            Total Amount:{" "}
+            <span className="font-extrabold">₹{order.totalAmount}</span>
           </p>
           {paymentDone ? (
             <div className="flex items-center text-green-600">
@@ -136,7 +160,7 @@ const Page = () => {
             </div>
           ) : (
             <button
-              className="bg-green-500 text-white px-10 py-2 rounded-md text-xl font-semibold border-2 border-green-500 hover:bg-white hover:text-green-500 flex items-center justify-center"
+              className="bg-green-500 text-white px-5 md:px-10 py-1 md:py-2 rounded-md text-xl font-semibold border-2 border-green-500 hover:bg-white hover:text-green-500 flex items-center justify-center"
               onClick={createOrder}
             >
               Pay
