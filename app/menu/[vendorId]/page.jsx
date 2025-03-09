@@ -49,7 +49,9 @@ const Page = () => {
   return (
     <>
       <VendorNavbar />
-      <h1 className="flex justify-center text-3xl md:text-4xl my-10 font-bold">Customize Weekly Menu</h1>
+      <h1 className="flex justify-center text-3xl md:text-4xl my-10 font-bold">
+        Customize Weekly Menu
+      </h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
         {menuItems.map((item) => (
           <MenuCard key={item._id} item={item} onEdit={handleEdit} />

@@ -3,12 +3,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function VendorLoginForm() {
-  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [verifiedId, setVerifiedId] = useState("");
   const [error, setError] = useState("");
-  const [loading,setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
@@ -41,7 +40,7 @@ export default function VendorLoginForm() {
     // console.log(email, password, verifiedId);
 
     try {
-      setLoading(true)
+      setLoading(true);
       const resVendorExists = await fetch("/api/vendorExists", {
         method: "POST",
         headers: {
@@ -71,8 +70,8 @@ export default function VendorLoginForm() {
     } catch (error) {
       console.log(error);
       setError("An error occurred. Please try again.");
-    }finally{
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -86,7 +85,10 @@ export default function VendorLoginForm() {
         /> */}
         <h1 className="text-xl font-bold my-4">Vendor Login</h1>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-72 md:w-96">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-3 w-72 md:w-96"
+        >
           <input
             onChange={(e) => setVerifiedId(e.target.value)}
             value={verifiedId}

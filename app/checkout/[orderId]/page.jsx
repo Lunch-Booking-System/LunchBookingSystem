@@ -13,7 +13,7 @@ const Page = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentDone, setPaymentDone] = useState(false);
-  const router = useRouter()
+  const router = useRouter();
 
   // useEffect(() => {
   //   const customer = JSON.parse(localStorage.getItem("customer"));
@@ -46,10 +46,11 @@ const Page = () => {
     }
   }, [orderId]);
 
-  const handleHomeNavigation = ()=>{
-    const customerId = order.customer._id
-    router.push(`/myOrders/${customerId}`)
-  }
+  const handleHomeNavigation = () => {
+    if (order && order.customer && order.customer._id) {
+      router.push(`/myOrders/${order.customer._id}`);
+    }
+  };
 
   const createOrder = async () => {
     const res = await fetch("/api/createOrder", {
@@ -78,6 +79,7 @@ const Page = () => {
         if (data.isOk) {
           setPaymentDone(true);
           toast.success("Payment successful");
+          handleHomeNavigation();
         } else {
           toast.error("Payment failed");
         }
@@ -107,16 +109,6 @@ const Page = () => {
         src="https://checkout.razorpay.com/v1/checkout.js"
       />
       <div className="md:max-w-4xl mx-2 md:mx-auto p-4 md:p-6 bg-white shadow-2xl rounded-lg border-t-4 border-orange-600">
-      <p className="flex mt-3 cursor-pointer"
-      onClick={handleHomeNavigation}
-      >
-      <ArrowLeft
-          size={30}
-          className="cursor-pointer mb-5"
-        />
-        <span className="text-xl p-[1px] ml-2">Go back</span>
-      </p>
-      
         <h1 className="text-4xl md:text-5xl font-bold mb-4">Order Summary</h1>
 
         <div className="mb-4">
@@ -124,7 +116,9 @@ const Page = () => {
             <strong>Order ID:</strong> {order._id}
           </p>
           <p>
-            <strong>Order Date:</strong> {order.orderDate.dayName}, {order.orderDate.date} {order.orderDate.month} {order.orderDate.year}
+            <strong>Order Date:</strong> {order.orderDate.dayName},{" "}
+            {order.orderDate.date} {order.orderDate.month}{" "}
+            {order.orderDate.year}
           </p>
         </div>
 
@@ -142,7 +136,9 @@ const Page = () => {
               />
               <div>
                 <h3 className="text-lg font-medium">{item.itemId.itemName}</h3>
-                <p className="text-sm text-gray-500">{item.itemId.description}</p>
+                <p className="text-sm text-gray-500">
+                  {item.itemId.description}
+                </p>
                 <p className="font-semibold">₹{item.itemId.price}</p>
                 <p>
                   Quantity: <span className="font-bold">{item.quantity}</span>
@@ -154,7 +150,8 @@ const Page = () => {
         <div className="border border-gray-200 mt-3" />
         <div className="flex justify-between my-5">
           <p className="text-xl mr-10 py-3 font-semibold">
-            Total Amount: <span className="font-extrabold">₹{order.totalAmount}</span>
+            Total Amount:{" "}
+            <span className="font-extrabold">₹{order.totalAmount}</span>
           </p>
           {paymentDone ? (
             <div className="flex items-center text-green-600">

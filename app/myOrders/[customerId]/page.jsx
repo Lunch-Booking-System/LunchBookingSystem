@@ -60,8 +60,9 @@ export default function Page() {
           href={`/booking/${customerId}/breakfast`}
           className="my-4 flex items-center justify-center font-extrabold"
         >
-          <button className="rounded-xl bg-red-600 px-5 py-2 text-white text-xl ">Order Now</button>
-          
+          <button className="rounded-xl bg-red-600 px-5 py-2 text-white text-xl ">
+            Order Now
+          </button>
         </Link>
       </div>
     );
@@ -138,24 +139,41 @@ const OrderCard = ({ order }) => {
               key={item._id}
               className="flex items-center p-4 border rounded-lg shadow-sm"
             >
-              <img
-                src={item?.itemId?.imageUrl}
-                alt={item?.itemId?.itemName}
-                className="w-24 h-24 rounded-lg object-cover mr-5"
-              />
-              <div>
-                <h3 className="text-lg font-medium">
-                  {item?.itemId?.itemName}
-                </h3>
-                <p className="font-semibold">₹{item?.itemId?.price}</p>
-                <p>
-                  Quantity: <span className="font-bold">{item.quantity}</span>
-                </p>
-              </div>
+              {item.itemId ? (
+                <>
+                  <img
+                    src={item.itemId.imageUrl}
+                    alt={item.itemId.itemName}
+                    className="w-24 h-24 rounded-lg object-cover mr-5"
+                  />
+                  <div>
+                    <h3 className="text-lg font-medium">
+                      {item.itemId.itemName}
+                    </h3>
+                    <p className="font-semibold">₹{item.itemId.price}</p>
+                    <p>
+                      Quantity:{" "}
+                      <span className="font-bold">{item.quantity}</span>
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center">
+                  <div className="w-24 h-24 bg-gray-200 rounded-lg mr-5 flex items-center justify-center">
+                    <span className="text-gray-400">No image</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-400">
+                      Item unavailable
+                    </h3>
+                    <p>
+                      Quantity:{" "}
+                      <span className="font-bold">{item.quantity}</span>
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-            // <li key={item._id} className="text-sm">
-            //   {item.category} - {item.quantity} x ₹{item.price}
-            // </li>
           ))}
         </ul>
       </div>

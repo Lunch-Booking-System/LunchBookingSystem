@@ -175,8 +175,6 @@ const MenuItems = ({ menuItems, selectedDate }) => {
         year: year,
       },
     };
-    
-  
 
     // console.log(orderData);
 
@@ -240,15 +238,22 @@ const MenuItems = ({ menuItems, selectedDate }) => {
             <div className="md:flex justify-evenly">
               <div className="flex md:block">
                 <button
+                  onClick={handleClearOrder}
+                  className="md:h-[50px] px-3 md:px-5 py-1 md:py-3 mb-3 text-white rounded-lg font-bold border-2 border-red-500 bg-red-500 hover:bg-white hover:text-red-500"
+                  disabled={loading}
+                >
+                  Clear Cart
+                </button>
+                <button
                   onClick={handleOrder}
-                  className={`md:h-[50px] mt-2 mx-2 px-3 md:px-5 py-1 mb-2 md:py-3 rounded-lg font-semibold ${
+                  className={`md:h-[50px] mx-2 px-3 md:px-5 py-1 mb-3  md:py-3 rounded-lg font-bold  ${
                     loading
                       ? "bg-white border-2 border-blue-500 text-blue-500"
                       : "text-white border-2 border-green-500 bg-green-500 hover:bg-white hover:text-green-500"
                   }`}
                   disabled={loading}
                 >
-                  {loading ? "Processing..." : "Confirm Order"}
+                  {loading ? "Processing..." : "Order Now"}
                 </button>
               </div>
             </div>

@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import React from "react";
 import Image from "next/image";
-import Logo from ".././assets/dabbaXpress-logo-black.png";
+import WortheatIMG from "../assets/NoBG.svg";
 import { LogOut } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -41,7 +41,7 @@ const VendorNavbar = () => {
   }
   return (
     <div className="flex justify-between gap-x-5 shadow-xl pb-2">
-      <Image src={Logo} alt="Logo" className="w-[150px] md:ml-16" />
+      <Image src={WortheatIMG} alt="Logo" className="w-[150px] md:ml-16" />
       <div className="flex mx-5">
       <p className="text-lg mt-8 mr-4 md:mr-10 cursor-pointer hover:scale-105 duration-150 hover:font-bold" onClick={handleOrderNavigation}>Orders</p>
       <p className="text-lg mt-8 mr-4  md:mr-10 cursor-pointer hover:scale-105 hover:font-bold duration-150" onClick={handleMenuNavigation}>Menu</p>

@@ -2,25 +2,21 @@
 import { useParams, usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 import { ChevronDown, LogOut, Menu, X } from "lucide-react";
+import Link from "next/link";
 import Image from "next/image";
 import WortheatIMG from "../assets/NoBG.svg";
 
-const Navbar = () => {
-  const { customerId } = useParams();
+const Navbar = ({ mealType, setMealType }) => {
+  // Extract both customerId and vendorId from route parameters
+  const { customerId, vendorId } = useParams();
   const router = useRouter();
   const pathname = usePathname();
-  
+
   const [userName, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     const getUserInfo = async () => {
@@ -39,6 +35,7 @@ const Navbar = () => {
 
         if (!resUserExists.ok) {
           toast.error(`Error: ${resUserExists.status}`);
+          return;
         }
 
         const text = await resUserExists.text();
@@ -61,23 +58,41 @@ const Navbar = () => {
 
   const handleNavigation = (route) => {
     setIsSidebarOpen(false);
+    // Validate vendorId
+    if (!vendorId || vendorId === "null") {
+      toast.error("Vendor ID is missing!");
+      return;
+    }
+    // Navigate using vendorId from the route parameters
+    if (["breakfast", "snacks", "weeklymenu"].includes(route)) {
+      router.push(`/booking/${customerId}/${vendorId}/${route}`);
+      return;
+    }
     if (route === "myOrders") {
       router.push(`/${route}/${customerId}`);
       return;
     }
-    router.push(`/booking/${customerId}/${route}`);
+    router.push(`/booking/${customerId}/${vendorId}/${route}`);
   };
 
   return (
-    <div className="flex justify-between md:gap-x-5 shadow-xl pb-2 overflow-x-hidden px-4 md:px-8">
-      <Image src={WortheatIMG} alt="Logo" className="w-[110px] md:w-[150px] mt-2" />
-      
+    <div className="flex justify-between md:gap-x-5 shadow-xl h-18 overflow-x-hidden px-4 md:px-8">
+      <Link href="/">
+        <Image
+          src={WortheatIMG}
+          alt="Wortheat Logo"
+          className="w-[110px] md:w-[150px] mt-2"
+        />
+      </Link>
+
       <div className="hidden md:flex py-2 mt-6 text-black">
         {["breakfast", "snacks", "weeklymenu", "myOrders"].map((route) => (
           <button
             key={route}
             className={`text-[14px] md:text-lg mr-5 cursor-pointer mx-5 mb-2 ${
-              pathname.includes(route) ? "bg-orange-500 text-white p-1 rounded-lg" : ""
+              pathname.includes(route)
+                ? "bg-orange-500 text-white p-1 rounded-lg"
+                : ""
             }`}
             onClick={() => handleNavigation(route)}
           >
@@ -85,39 +100,53 @@ const Navbar = () => {
           </button>
         ))}
         {customerId && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <p className="text-black flex text-[14px] md:text-lg cursor-pointer duration-150 mr-5 mt-1">
-                {userName} <ChevronDown className="md:ml-1 size-30" />
-              </p>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-24 md:w-52">
-              <DropdownMenuLabel>{"Email : " + email}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="hover:bg-slate-100">
-                <p onClick={handleLogOut} className="flex cursor-pointer duration-200">
+          <div className="relative">
+            <p
+              className="text-black flex text-[14px] md:text-lg cursor-pointer duration-150 mr-5 mt-1"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            >
+              {userName} <ChevronDown className="md:ml-1 size-30" />
+            </p>
+            {isDropdownOpen && (
+              <div className="absolute right-0 bg-white shadow-md rounded-md p-2 w-40">
+                <p className="text-sm">Email: {email}</p>
+                <hr className="my-2" />
+                <p
+                  onClick={handleLogOut}
+                  className="flex cursor-pointer duration-200 text-red-500"
+                >
                   <LogOut className="mr-3" /> Log out
                 </p>
-              </DropdownMenuLabel>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </div>
+            )}
+          </div>
         )}
       </div>
-      
+
       {/* Hamburger Menu */}
       <div className="md:hidden flex items-center mt-2">
-        <Menu className="cursor-pointer " size={30} onClick={() => setIsSidebarOpen(true)} />
+        <Menu
+          className="cursor-pointer"
+          size={30}
+          onClick={() => setIsSidebarOpen(true)}
+        />
       </div>
-      
+
       {/* Sidebar */}
       {isSidebarOpen && (
         <div className="fixed top-0 right-0 w-64 h-full bg-white shadow-lg z-50 flex flex-col p-5 transition-transform duration-1000">
-          <X size={30} className=" self-end cursor-pointer mb-10 text-red-500 font-extrabold" onClick={() => setIsSidebarOpen(false)} />
+          <X
+            size={30}
+            className="self-end cursor-pointer mb-10 text-red-500 font-extrabold"
+            onClick={() => setIsSidebarOpen(false)}
+          />
           {["breakfast", "snacks", "weeklymenu", "myOrders"].map((route) => (
             <button
               key={route}
               className={`text-lg py-2 px-1 mt-4 w-full text-left ${
-                pathname.includes(route) ? "bg-orange-500 text-white p-1 rounded-lg" : ""
+                pathname.includes(route)
+                  ? "bg-orange-500 text-white p-1 rounded-lg"
+                  : ""
               }`}
               onClick={() => handleNavigation(route)}
             >

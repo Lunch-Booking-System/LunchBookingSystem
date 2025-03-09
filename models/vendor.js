@@ -7,30 +7,31 @@ const vendorSchema = new Schema(
       required: true,
     },
     phone: {
-        type: String,
-        required: true
-      },
+      type: String,
+      required: true
+    },
     email: {
-        type: String,
-        required: true
-      },
-    password:{
-        type:String,
-        required:true
-      },
+      type: String,
+      required: true
+    },
+    password: {
+      type: String,
+      required: true
+    },
     shopName: {
-        type: String,
-        required: true,
-      },
+      type: String,
+      required: true,
+    },
     menuItems: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Menu"
+        ref: "Menu",
       }
     ],
+
     address: {
-      type:String,
-      required:true
+      type: String,
+      required: true
     },
   },
   { timestamps: true }

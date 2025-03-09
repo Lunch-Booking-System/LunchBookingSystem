@@ -19,13 +19,12 @@ export async function POST(req) {
     await connectMongoDB();
 
     // Find the user by email
-    const user = await User.findOne({ email }).select("_id password firstName lastName");
+    const user = await User.findOne({ email }).select(
+      "_id password firstName lastName"
+    );
 
     if (!user) {
-      return NextResponse.json(
-        { message: "User not found." },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "User not found." }, { status: 404 });
     }
 
     // Compare passwords
@@ -46,7 +45,6 @@ export async function POST(req) {
         lastName: user.lastName,
       },
     });
-
   } catch (error) {
     console.error("Login Error:", error);
     return NextResponse.json(
