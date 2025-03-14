@@ -68,7 +68,7 @@ const MenuItems = ({ menuItems, selectedDate }) => {
     });
     // console.log(item.itemName)
     toast.dismiss();
-    toast.success(`Added ${item.itemName}`);
+    // toast.success(`Added ${item.itemName}`);
   };
 
   const handleRemoveOrder = (item) => {
@@ -83,7 +83,7 @@ const MenuItems = ({ menuItems, selectedDate }) => {
     });
     // console.log(item);
     toast.dismiss();
-    toast.error(`Removed ${item.itemName}`);
+    // toast.error(`Removed ${item.itemName}`);
   };
 
   const calculateTotalPrice = () => {

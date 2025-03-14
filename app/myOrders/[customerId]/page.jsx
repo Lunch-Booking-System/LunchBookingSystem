@@ -91,7 +91,7 @@ const OrderCard = ({ order }) => {
   const [showQRModal, setShowQRModal] = useState(false);
 
   const handleCancelOrder = async (orderId) => {
-    // console.log(orderId);
+    console.log(orderId);
     if (!orderId) {
       toast.error("No order to cancel.");
       return;
@@ -213,7 +213,7 @@ const OrderCard = ({ order }) => {
         )}
       </div>
       {showQRModal && (
-        <QRModal orderId={customerId} onClose={() => setShowQRModal(false)} />
+        <QRModal orderId={order._id} onClose={() => setShowQRModal(false)} />
       )}
     </div>
   );
