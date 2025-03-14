@@ -108,14 +108,14 @@ export default function RegisterForm() {
           
           <select onChange={(e) => setAddress(e.target.value)} className="w-72 md:w-full py-3 pl-5 border">
             <option value="">Select Address</option>
-            <option value="123 Main St">123 Main St</option>
-            <option value="456 Elm St">456 Elm St</option>
+            <option value="Sai Radhe Complex">Sai Radhe Complex</option>
+            <option value="The Hive">The Hive</option>
           </select>
           
           <select onChange={(e) => setCompany(e.target.value)} className="w-72 md:w-full py-3 pl-5 border">
             <option value="">Select Company</option>
-            <option value="Google">Google</option>
-            <option value="Microsoft">Microsoft</option>
+            <option value="EKA Mobility">EKA Mobility</option>
+            <option value="Liebherr">Liebherr</option>
           </select>
 
           <button className="bg-orange-600 text-white font-bold cursor-pointer px-6 py-2 rounded-md">
