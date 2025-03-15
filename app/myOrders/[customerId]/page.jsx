@@ -9,6 +9,17 @@ import { CheckCircle, AlertTriangle, CheckCheck } from "lucide-react";
 import QRModal from "@/components/QRmodal";
 import Link from "next/link";
 
+const sortOrderItems = (ordersData) => {
+  const sortedOrders = Object.keys(ordersData).reduce((acc, dateKey) => {
+      acc[dateKey] = ordersData[dateKey].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      return acc;
+  }, {});
+
+  return sortedOrders;
+};
+
 export default function Page() {
   const { customerId } = useParams();
   // console.log(customerId)
@@ -21,9 +32,10 @@ export default function Page() {
           `/api/getAllOrders?customerId=${customerId}`
         );
         const data = await response.json();
-        const sortedOrders = Object.fromEntries(Object.entries(data).reverse());
-        setOrdersGrouped(sortedOrders);
-        // console.log(sortedOrders)
+        const sortedData = sortOrderItems(data);
+        const sortedOrdersByDate = Object.fromEntries(Object.entries(sortedData).reverse()); 
+        // console.log(sortedOrdersByDate)
+        setOrdersGrouped(sortedOrdersByDate);
         // console.log(data)
       } catch (error) {
         console.error("Error fetching orders", error);
