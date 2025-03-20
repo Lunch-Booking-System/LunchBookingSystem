@@ -101,9 +101,13 @@ export default function Dashboard() {
         const response = await fetch(`/api/getAllVendors`);
         const data = await response.json();
         setVendors(data.vendors);
-        // Set default vendor if available
+
         if (data.vendors.length > 0) {
-          setSelectedVendor(data.vendors[0]);
+          const selectedVendor = data.vendors[0];
+          setSelectedVendor(selectedVendor);
+
+          localStorage.setItem("vendorId", selectedVendor._id);
+          console.log("Vendor ID stored:", selectedVendor._id);
         }
       } catch (error) {
         console.error("Error fetching vendors:", error);

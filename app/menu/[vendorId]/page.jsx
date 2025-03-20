@@ -1,202 +1,334 @@
 "use client";
-import { useEffect, useState } from "react";
-import VendorNavbar from "@/components/VendorNavbar";
-import toast from "react-hot-toast";
-import { Pencil } from "lucide-react";
+import Navbar from "@/components/Navbar";
 import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import LoadingGif from "../../../assets/LoadingComponentImage.gif";
+import Image from "next/image";
+import toast from "react-hot-toast";
+import {
+  CheckCircle,
+  AlertTriangle,
+  CheckCheck,
+  ArrowLeft,
+} from "lucide-react";
+import QRModal from "@/components/QRmodal";
+import Link from "next/link";
 
-const Page = () => {
+const sortOrderItems = (ordersData) => {
+  const sortedOrders = Object.keys(ordersData).reduce((acc, dateKey) => {
+    acc[dateKey] = ordersData[dateKey].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+    return acc;
+  }, {});
+
+  return sortedOrders;
+};
+
+export default function Page() {
+  const { customerId } = useParams();
   const router = useRouter();
-  const { vendorId } = useParams();
-  const [menuItems, setMenuItems] = useState([]);
+  const [ordersGrouped, setOrdersGrouped] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [vendorId, setVendorId] = useState(null);
+
+  // Retrieve vendorId from localStorage
+  useEffect(() => {
+    const storedVendorId = localStorage.getItem("vendorId");
+    if (storedVendorId) {
+      setVendorId(storedVendorId);
+    } else {
+      console.warn("Vendor ID not found in localStorage");
+    }
+  }, []);
 
   useEffect(() => {
-    const session = localStorage.getItem("vendorSession");
-
-    if (session) {
-      const { sessionId } = JSON.parse(session);
-
-      if (sessionId !== vendorId) {
-        localStorage.removeItem("vendorSession");
-        toast.error("Invalid Vendor-ID. Try logging in again.");
-        router.push("/onboardingvendor/login");
-        return;
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(
+          `/api/getAllOrders?customerId=${customerId}`
+        );
+        const data = await response.json();
+        const sortedData = sortOrderItems(data);
+        const sortedOrdersByDate = Object.fromEntries(
+          Object.entries(sortedData).reverse()
+        );
+        setOrdersGrouped(sortedOrdersByDate);
+      } catch (error) {
+        console.error("Error fetching orders", error);
+      } finally {
+        setLoading(false);
       }
+    };
+
+    fetchOrders();
+  }, [customerId]);
+
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Image
+            src={LoadingGif}
+            className="mx-auto w-72 h-auto"
+            alt="loader"
+          />
+          <p className="text-lg font-semibold text-gray-600 mt-4">
+            Loading your orders...
+          </p>
+        </div>
+      </div>
+    );
+
+  if (!Object.keys(ordersGrouped).length)
+    return (
+      <div className="bg-gray-50 min-h-screen">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col items-center justify-center">
+            <img
+              src="https://spicescreen.com/reactspicejetserver/Profilepages/Images/mallnotFound.jpg"
+              className="rounded-xl shadow-md w-[350px] h-[400px] md:w-[500px] md:h-[500px] object-cover"
+              alt="No orders found"
+            />
+            <Link
+              href={`/booking/${customerId}/${vendorId}/breakfast`}
+              className="mt-8"
+            >
+              <button className="rounded-xl bg-red-600 hover:bg-red-700 transition-colors px-6 py-3 text-white text-xl font-extrabold shadow-md">
+                Order Now
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      <Navbar />
+      <div className="container mx-auto mt-10 p-4">
+        <div className="max-w-3xl mx-auto">
+          {Object.entries(ordersGrouped).map(([dateKey, orders]) => (
+            <OrderGroupCard key={dateKey} dateKey={dateKey} orders={orders} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const OrderCard = ({ order }) => {
+  const router = useRouter();
+  const { customerId } = useParams();
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [totalAfterDiscount, setTotalAfterDiscount] = useState(0);
+
+  useEffect(() => {
+    if (order.paymentStatus !== "Paid") {
+      setTotalAfterDiscount(0);
     } else {
-      toast.error("Try logging in again.");
-      router.push("/onboardingvendor/login");
+      const storedTotal = localStorage.getItem("totalAfterDiscount");
+      if (storedTotal) {
+        setTotalAfterDiscount(storedTotal);
+      } else {
+        setTotalAfterDiscount(order.totalAmount);
+      }
+    }
+  }, [order.paymentStatus, order.totalAmount]);
+
+  const handleCancelOrder = async (orderId) => {
+    if (!orderId) {
+      toast.error("No order to cancel.");
       return;
     }
 
-    if (vendorId) {
-      getMenuItems();
-    }
-  }, [vendorId]);
+    try {
+      const res = await fetch(`/api/cancelOrder/${orderId}`, {
+        method: "DELETE",
+      });
 
-  const getMenuItems = async () => {
-    const res = await fetch("/api/getMenuItems");
-    const data = await res.json();
-    // console.log(data)
-    setMenuItems(data);
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Order cancelled successfully!");
+        window.location.reload();
+      } else {
+        toast.error("Failed to cancel order: " + data.message);
+      }
+    } catch (error) {
+      console.error("Cancel Order Error:", error);
+      toast.error("An error occurred while cancelling the order.");
+    }
   };
 
-  const handleEdit = (updatedItem) => {
-    setMenuItems((prev) =>
-      prev.map((item) => (item._id === updatedItem._id ? updatedItem : item))
-    );
+  const handleCheckoutNavigation = () => {
+    router.push(`/checkout/${order._id}`);
   };
 
   return (
-    <>
-      <VendorNavbar />
-      <h1 className="flex justify-center text-3xl md:text-4xl my-10 font-bold">
-        Customize Weekly Menu
-      </h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
-        {menuItems.map((item) => (
-          <MenuCard key={item._id} item={item} onEdit={handleEdit} />
-        ))}
+    <div className="mb-6">
+      <div className="border bg-white rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex flex-col md:flex-row justify-between md:items-center gap-3">
+          <div>
+            <p className="font-semibold text-sm text-gray-700">
+              Order ID: <span className="text-gray-600">{order._id}</span>
+            </p>
+            <p className="text-gray-800 mt-1">
+              Total:{" "}
+              <span className="font-bold text-black">₹{order.totalAmount}</span>
+            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-green-700">After Discount:</p>
+              {totalAfterDiscount && (
+                <p className="text-green-700">
+                  <span className="font-bold">₹{totalAfterDiscount}</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          {order.status === "Received" && (
+            <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+              <CheckCheck className="w-4 h-4 mr-2" />
+              Received
+            </div>
+          )}
+        </div>
+
+        <div className="my-4">
+          <p className="text-xl font-medium mb-3 text-gray-800 border-b pb-2">
+            Cart Items
+          </p>
+          <ul className="space-y-3">
+            {order.items.map((item) => (
+              <div
+                key={item._id}
+                className="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <img
+                  src={item?.itemId?.imageUrl}
+                  alt={item?.itemId?.itemName}
+                  className="w-20 h-20 rounded-lg object-cover mr-5 border"
+                />
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">
+                    {item?.itemId?.itemName}
+                  </h3>
+                  <p className="font-semibold text-gray-800">
+                    ₹{item?.itemId?.price}
+                  </p>
+                  <p className="text-gray-600">
+                    Quantity: <span className="font-bold">{item.quantity}</span>
+                  </p>
+                </div>
+              </div>
+            ))}
+          </ul>
+        </div>
+
+        {order.paymentStatus === "Paid" ? (
+          order.status === "Received" ? (
+            <div className="flex items-center gap-2 text-green-600 font-semibold mt-5 bg-green-50 p-3 rounded-lg">
+              <CheckCheck className="w-5 h-5" />
+              <p>You have received your order</p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-green-600 font-semibold mt-5 bg-green-50 p-3 rounded-lg">
+              <CheckCircle className="w-5 h-5" />
+              <p>Payment Done. You can take your order using the QR button.</p>
+            </div>
+          )
+        ) : (
+          <div className="flex items-center gap-2 text-amber-600 font-semibold mt-5 bg-amber-50 p-3 rounded-lg">
+            <AlertTriangle className="w-5 h-5" />
+            <p>
+              To confirm the order, you need to pay first. Click on the Checkout
+              button.
+            </p>
+          </div>
+        )}
+
+        <div className="flex space-x-3 mt-5">
+          {order.paymentStatus === "Paid" ? (
+            order.status === "Received" ? (
+              <p className="flex items-center text-green-600 font-semibold text-lg">
+                <CheckCheck className="mr-2" />
+                You have received your order
+              </p>
+            ) : (
+              <button
+                onClick={() => setShowQRModal(true)}
+                className="py-2 px-6 rounded-md text-lg font-semibold bg-green-500 hover:bg-green-600 text-white transition-colors shadow-sm"
+              >
+                QR
+              </button>
+            )
+          ) : (
+            <>
+              <button
+                onClick={handleCheckoutNavigation}
+                className="py-2 px-5 rounded-md text-lg font-semibold bg-blue-500 hover:bg-blue-600 text-white transition-colors shadow-sm"
+              >
+                Checkout
+              </button>
+              <button
+                onClick={() =>
+                  router.push(
+                    `/booking/${customerId}/${localStorage.getItem(
+                      "vendorId"
+                    )}/breakfast`
+                  )
+                }
+                className="py-2 px-5 rounded-md text-lg font-semibold bg-yellow-500 hover:bg-yellow-600 text-white transition-colors shadow-sm"
+              >
+                Edit Order
+              </button>
+            </>
+          )}
+
+          {order.paymentStatus !== "Paid" && (
+            <button
+              onClick={() => handleCancelOrder(order._id)}
+              className="py-2 px-5 rounded-md text-lg font-semibold bg-red-500 hover:bg-red-600 text-white transition-colors shadow-sm"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+        {showQRModal && (
+          <QRModal orderId={order._id} onClose={() => setShowQRModal(false)} />
+        )}
       </div>
-    </>
+    </div>
   );
 };
 
-export default Page;
+const OrderGroupCard = ({ dateKey, orders }) => {
+  const router = useRouter();
+  const { customerId } = useParams();
+  const vendorId = localStorage.getItem("vendorId");
 
-const MenuCard = ({ item, onEdit }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [updatedItem, setUpdatedItem] = useState(item);
-
-  const handleChange = (e) => {
-    if (e.target.name === "menuDate") {
-      const newDate = new Date(e.target.value);
-      setUpdatedItem({
-        ...updatedItem,
-        menuDate: {
-          date: newDate.getDate(),
-          dayName: newDate.toLocaleDateString("en-US", { weekday: "long" }),
-          month: newDate.toLocaleDateString("en-US", { month: "long" }),
-          year: newDate.getFullYear(),
-        },
-      });
-    } else {
-      setUpdatedItem({ ...updatedItem, [e.target.name]: e.target.value });
-    }
-  };
-
-  const handleSave = async () => {
-    setLoading(true);
-    const res = await fetch("/api/updateItem", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updatedItem),
-    });
-    if (res.ok) {
-      setIsEditing(false);
-      onEdit(updatedItem);
-      setLoading(false);
-      toast.success("Updated menu successfully");
-    } else {
-      toast.error("Somthing went wrong Try again.");
-    }
+  const handleNavigation = () => {
+    router.push(`/vendorDashboard/${customerId}`);
   };
 
   return (
-    <div className="p-4 shadow-lg rounded-md hover:shadow-xl bg-white">
-      <h3 className="text-xl font-semibold bg-orange-500 p-3 text-white rounded-lg flex justify-center">
-        {item.menuDate.dayName}
-      </h3>
-      <img
-        src={item.imageUrl}
-        alt={item.itemName}
-        className="w-full h-40 object-cover rounded-md mt-2"
-      />
-      {isEditing ? (
-        <input
-          type="text"
-          name="itemName"
-          value={updatedItem.itemName}
-          onChange={handleChange}
-          className="w-full p-2 border rounded mt-2"
-        />
-      ) : (
-        <h2 className="text-lg font-bold mt-2">{item.itemName}</h2>
-      )}
-      {isEditing ? (
-        <input
-          type="text"
-          name="type"
-          value={updatedItem.type}
-          onChange={handleChange}
-          className="w-full p-2 border rounded mt-2"
-        />
-      ) : item.type === "Veg" ? (
-        <h2 className="text-md font-semibold mt-1 bg-green-200 border border-green-400 rounded-xl text-green-700 w-[50px] flex justify-center">
-          {item.type}
-        </h2>
-      ) : (
-        <h2 className="text-md font-semibold mt-1 bg-red-200 border border-red-400 rounded-xl text-red-700 w-[80px] flex justify-center">
-          {item.type}
-        </h2>
-      )}
-      {isEditing ? (
-        <textarea
-          name="description"
-          value={updatedItem.description}
-          onChange={handleChange}
-          className="w-full p-2 border rounded mt-2"
-        />
-      ) : (
-        <p className="text-gray-600 mt-2">{item.description}</p>
-      )}
-      {isEditing ? (
-        <input
-          type="number"
-          name="price"
-          value={updatedItem.price}
-          onChange={handleChange}
-          className="w-full p-2 border rounded mt-2"
-        />
-      ) : (
-        <p className="text-sm text-gray-500 mt-2">Price: ₹{item.price}</p>
-      )}
-      {isEditing ? (
-        <input
-          type="date"
-          name="menuDate"
-          value={`${updatedItem.menuDate.year}-${String(
-            new Date(
-              updatedItem.menuDate.month + " 1, " + updatedItem.menuDate.year
-            ).getMonth() + 1
-          ).padStart(2, "0")}-${String(updatedItem.menuDate.date).padStart(
-            2,
-            "0"
-          )}`}
-          onChange={handleChange}
-          className="w-full p-2 border rounded mt-2"
-        />
-      ) : (
-        <p className="text-sm text-gray-500 mt-2">
-          Date: {item.menuDate.date} {item.menuDate.dayName}{" "}
-          {item.menuDate.month} {item.menuDate.year}
-        </p>
-      )}
-      {isEditing ? (
+    <div className="mb-8 border rounded-lg shadow-lg p-5 bg-white">
+      <div className="flex items-center mb-5">
         <button
-          onClick={handleSave}
-          className="mt-2 px-4 py-2 bg-green-500 text-white rounded"
+          onClick={handleNavigation}
+          className="flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors"
         >
-          {loading === true ? "Saving  ..." : "Save"}
+          <ArrowLeft size={18} className="mr-2" />
+          Go Back
         </button>
-      ) : (
-        <button
-          onClick={() => setIsEditing(true)}
-          className="mt-2 px-4 py-2 bg-black text-white rounded"
-        >
-          <Pencil />
-        </button>
-      )}
+        <h2 className="text-xl font-bold ml-4 text-gray-800">{dateKey}</h2>
+      </div>
+
+      {orders.map((order) => (
+        <OrderCard key={order._id} order={order} />
+      ))}
     </div>
   );
 };

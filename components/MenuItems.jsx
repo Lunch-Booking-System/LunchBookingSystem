@@ -30,7 +30,7 @@ const MenuItems = ({ menuItems, selectedDate }) => {
   const [loading, setLoading] = useState(false);
   const [dayInfo, setDayInfo] = useState("");
   const [itemQuantities, setItemQuantities] = useState({});
-  const [isCartOpen,setIsCartOpen]= useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const router = useRouter();
 
   // console.log(selectedDate)
@@ -68,7 +68,7 @@ const MenuItems = ({ menuItems, selectedDate }) => {
     });
     // console.log(item.itemName)
     toast.dismiss();
-    toast.success(`Added ${item.itemName}`);
+    // toast.success(`Added ${item.itemName}`);
   };
 
   const handleRemoveOrder = (item) => {
@@ -83,7 +83,7 @@ const MenuItems = ({ menuItems, selectedDate }) => {
     });
     // console.log(item);
     toast.dismiss();
-    toast.error(`Removed ${item.itemName}`);
+    // toast.error(`Removed ${item.itemName}`);
   };
 
   const calculateTotalPrice = () => {
@@ -95,7 +95,9 @@ const MenuItems = ({ menuItems, selectedDate }) => {
 
   const onOrder = (item, quantity) => {
     setOrderItems((prevItems) => {
-      const existingItem = prevItems.find((orderItem) => orderItem._id === item._id);
+      const existingItem = prevItems.find(
+        (orderItem) => orderItem._id === item._id
+      );
       // console.log("existingItem",existingItem)
       if (existingItem) {
         return prevItems.map((orderItem) =>
@@ -116,7 +118,11 @@ const MenuItems = ({ menuItems, selectedDate }) => {
   const decreaseQuantity = (item) => {
     setOrderItems((prev) =>
       prev
-        .map((order) => (order._id === item._id ? { ...order, quantity: order.quantity - 1 } : order))
+        .map((order) =>
+          order._id === item._id
+            ? { ...order, quantity: order.quantity - 1 }
+            : order
+        )
         .filter((order) => order.quantity > 0)
     );
   };
@@ -205,7 +211,6 @@ const MenuItems = ({ menuItems, selectedDate }) => {
     }
   };
 
-
   return (
     <div className="divide-y divide-gray-200">
       <div className="flex md:flex-row flex-col gap-5 md:ml-[26%]">
@@ -216,13 +221,13 @@ const MenuItems = ({ menuItems, selectedDate }) => {
             onOrder={onOrder}
             // onRemove={handleRemoveOrder}
             dayName={selectedDate.day}
-            isAdded={orderItems.some((orderItem)=> orderItem._id === item._id )}
+            isAdded={orderItems.some((orderItem) => orderItem._id === item._id)}
           />
         ))}
       </div>
 
-       {/* Order Details */}
-       {orderItems.length > 0 && (
+      {/* Order Details */}
+      {orderItems.length > 0 && (
         <div className="fixed bottom-0 left-0 w-full bg-white shadow-lg p-4 z-50 bg-opacity-95">
           <div className="flex justify-between items-center text-center">
             <div className="md:flex md:flex-wrap md:w-1/2">
@@ -231,29 +236,25 @@ const MenuItems = ({ menuItems, selectedDate }) => {
                   onClick={() => setIsCartOpen(true)}
                   className="flex bg-blue-600 text-white px-3 md:px-5 py-1 md:py-3   rounded-lg font-semibold shadow-md hover:bg-blue-700"
                 >
-                  <span className="mr-3"><ShoppingCart/></span> View Cart ({orderItems.length})
+                  <span className="mr-3">
+                    <ShoppingCart />
+                  </span>{" "}
+                  View Cart ({orderItems.length})
                 </button>
               </div>
             </div>
             <div className="md:flex justify-evenly">
               <div className="flex md:block">
                 <button
-                  onClick={handleClearOrder}
-                  className="md:h-[50px] px-3 md:px-5 py-1 md:py-3 mb-3 text-white rounded-lg font-bold border-2 border-red-500 bg-red-500 hover:bg-white hover:text-red-500"
-                  disabled={loading}
-                >
-                  Clear Cart
-                </button>
-                <button
                   onClick={handleOrder}
-                  className={`md:h-[50px] mx-2 px-3 md:px-5 py-1 mb-3  md:py-3 rounded-lg font-bold  ${
+                  className={`md:h-[50px] mt-2 mx-2 px-3 md:px-5 py-1 mb-2 md:py-3 rounded-lg font-semibold ${
                     loading
                       ? "bg-white border-2 border-blue-500 text-blue-500"
                       : "text-white border-2 border-green-500 bg-green-500 hover:bg-white hover:text-green-500"
                   }`}
                   disabled={loading}
                 >
-                  {loading ? "Processing..." : "Order Now"}
+                  {loading ? "Processing..." : "Confirm Order"}
                 </button>
               </div>
             </div>
@@ -262,73 +263,88 @@ const MenuItems = ({ menuItems, selectedDate }) => {
       )}
 
       <Dialog
-              open={isCartOpen}
-              onClose={() => setIsCartOpen(false)}
-              className="relative z-50"
-            >
-              <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center">
-                <Dialog.Panel className="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md">
-                  <Dialog.Title className="text-xl font-bold">Your Cart</Dialog.Title>
-      
-                  {/* Cart Items */}
-                  { orderItems.length ? <div className="mt-4">
-                    {orderItems.map((item) => (
-                      <div
-                        key={item._id}
-                        className="flex items-center justify-between border-b py-2"
-                      >
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={item.imageUrl}
-                            width={50}
-                            height={50}
-                            alt={item.itemName}
-                            className="rounded-lg"
-                          />
-                          <span className="text-md font-medium">{item.itemName}</span>
-                        </div>
-      
-                        <div className="flex items-center gap-5">
-                          <button
-                            onClick={() => decreaseQuantity(item)}
-                            className="px-4 py-1 bg-white text-black rounded-lg 
+        open={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center">
+          <Dialog.Panel className="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md">
+            <Dialog.Title className="text-xl font-bold">Your Cart</Dialog.Title>
+
+            {/* Cart Items */}
+            {orderItems.length ? (
+              <div className="mt-4">
+                {orderItems.map((item) => (
+                  <div
+                    key={item._id}
+                    className="flex items-center justify-between border-b py-2"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={item.imageUrl}
+                        width={50}
+                        height={50}
+                        alt={item.itemName}
+                        className="rounded-lg"
+                      />
+                      <span className="text-md font-medium">
+                        {item.itemName}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-5">
+                      <button
+                        onClick={() => decreaseQuantity(item)}
+                        className="px-4 py-1 bg-white text-black rounded-lg 
                             border border-gray-300  font-bold"
-                          >
-                            -
-                          </button>
-                          <span className="text-lg font-bold">{item.quantity}</span>
-                          <button
-                            onClick={() => onOrder(item, 1)}
-                            className="px-4 py-1 bg-white text-black border border-gray-300 rounded-lg font-bold"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div> :<div className="">
-                  <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-illustration-download-in-svg-png-gif-file-formats--shopping-ecommerce-simple-error-state-pack-user-interface-illustrations-6024626.png?f=webp"  className="flex justify-center"/>
-                  <p className="flex justify-center font-bold text:xl">Cart is empty.Order Now!</p>
-                  </div> }
-      
-                  {/* Total Price & Actions */}
-                  <div className="mt-6 flex justify-between items-center">
-                    <p className="text-lg font-bold">
-                      Total: ₹{calculateTotalPrice()}
-                    </p>
-                    <div className="">
-                            {orderItems.length ? <button
-                        onClick={handleClearOrder}
-                        className="px-3 py-1 rounded-lg font-bold border-2 border-red-500 bg-white text-red-500"
-                        disabled={loading}
                       >
-                        Clear Cart
-                      </button>:<></>}
-                      </div>
+                        -
+                      </button>
+                      <span className="text-lg font-bold">{item.quantity}</span>
+                      <button
+                        onClick={() => onOrder(item, 1)}
+                        className="px-4 py-1 bg-white text-black border border-gray-300 rounded-lg font-bold"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                </Dialog.Panel>
+                ))}
               </div>
-            </Dialog>
+            ) : (
+              <div className="">
+                <img
+                  src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-illustration-download-in-svg-png-gif-file-formats--shopping-ecommerce-simple-error-state-pack-user-interface-illustrations-6024626.png?f=webp"
+                  className="flex justify-center"
+                />
+                <p className="flex justify-center font-bold text:xl">
+                  Cart is empty.Order Now!
+                </p>
+              </div>
+            )}
+
+            {/* Total Price & Actions */}
+            <div className="mt-6 flex justify-between items-center">
+              <p className="text-lg font-bold">
+                Total: ₹{calculateTotalPrice()}
+              </p>
+              <div className="">
+                {orderItems.length ? (
+                  <button
+                    onClick={handleClearOrder}
+                    className="px-3 py-1 rounded-lg font-bold border-2 border-red-500 bg-white text-red-500"
+                    disabled={loading}
+                  >
+                    Clear Cart
+                  </button>
+                ) : (
+                  <></>
+                )}
+              </div>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   );
 };

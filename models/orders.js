@@ -73,5 +73,10 @@ const orderSchema = new Schema(
   { timestamps: true }
 );
 
+orderSchema.pre("save", function (next) {
+  this.totalAfterDiscount = this.totalAmount - this.discount;
+  next();
+});
+
 const Orders = models.Order || mongoose.model("Order", orderSchema);
 export default Orders;
