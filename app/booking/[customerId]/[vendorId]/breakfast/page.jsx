@@ -52,7 +52,6 @@ const BreakfastMenu = () => {
   const [clearMessage, setClearMessage] = useState("");
   const router = useRouter();
 
-
   useEffect(() => {
     const customer = JSON.parse(localStorage.getItem("customer"));
     const localCustomerId = customer?.customerId;
@@ -233,9 +232,6 @@ const BreakfastMenu = () => {
               item={item}
               onOrder={onOrder}
               onRemove={onRemove}
-              isAdded={orderItems.some(
-                (orderItem) => orderItem._id === item._id
-              )}
             />
           ))}
         </div>

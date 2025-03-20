@@ -8,6 +8,7 @@ import Image from "next/image";
 import WortheatIMG from "../assets/NoBG.svg";
 
 const Navbar = ({ mealType, setMealType }) => {
+  // Extract both customerId and vendorId from route parameters
   const { customerId, vendorId } = useParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -57,27 +58,22 @@ const Navbar = ({ mealType, setMealType }) => {
 
   const handleNavigation = (route) => {
     setIsSidebarOpen(false);
-
-    if (
-      ["breakfast", "snacks", "weeklymenu"].includes(route) &&
-      (!vendorId || vendorId === "null")
-    ) {
+    // Validate vendorId
+    if (!vendorId || vendorId === "null") {
       toast.error("Vendor ID is missing!");
       return;
     }
-
+    // Navigate using vendorId from the route parameters
     if (["breakfast", "snacks", "weeklymenu"].includes(route)) {
       router.push(`/booking/${customerId}/${vendorId}/${route}`);
-    } else if (route === "myOrders") {
-      router.push(`/${route}/${customerId}`);
-    } else {
-      router.push(`/booking/${customerId}/${vendorId}/${route}`);
+      return;
     }
+    if (route === "myOrders") {
+      router.push(`/${route}/${customerId}`);
+      return;
+    }
+    router.push(`/booking/${customerId}/${vendorId}/${route}`);
   };
-
-  const navOptions = pathname.includes("myOrders")
-    ? ["myOrders"]
-    : ["breakfast", "snacks", "weeklymenu", "myOrders"];
 
   return (
     <div className="flex justify-between md:gap-x-5 shadow-xl h-18 overflow-x-hidden px-4 md:px-8">
@@ -90,7 +86,7 @@ const Navbar = ({ mealType, setMealType }) => {
       </Link>
 
       <div className="hidden md:flex py-2 mt-6 text-black">
-        {navOptions.map((route) => (
+        {["breakfast", "snacks", "weeklymenu", "myOrders"].map((route) => (
           <button
             key={route}
             className={`text-[14px] md:text-lg mr-5 cursor-pointer mx-5 mb-2 ${
@@ -144,7 +140,7 @@ const Navbar = ({ mealType, setMealType }) => {
             className="self-end cursor-pointer mb-10 text-red-500 font-extrabold"
             onClick={() => setIsSidebarOpen(false)}
           />
-          {navOptions.map((route) => (
+          {["breakfast", "snacks", "weeklymenu", "myOrders"].map((route) => (
             <button
               key={route}
               className={`text-lg py-2 px-1 mt-4 w-full text-left ${
@@ -158,7 +154,7 @@ const Navbar = ({ mealType, setMealType }) => {
             </button>
           ))}
           {customerId && (
-            <div className="mt-6 border-t pt-4 overflow-auto max-h-screen ">
+            <div className="mt-6 border-t pt-4">
               <p className="text-lg font-semibold">{userName}</p>
               <p className="text-sm text-gray-500">{email}</p>
               <button
