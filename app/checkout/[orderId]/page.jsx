@@ -103,7 +103,7 @@ const Page = () => {
   if (!order) return <p className="text-center mt-5">No order found.</p>;
 
   return (
-    <div className="h-screen flex items-center justify-center md:block md:mt-20">
+    <div className="min-h-screen flex items-center justify-center md:block mt-8 md:mt-20">
       <Script
         type="text/javascript"
         src="https://checkout.razorpay.com/v1/checkout.js"

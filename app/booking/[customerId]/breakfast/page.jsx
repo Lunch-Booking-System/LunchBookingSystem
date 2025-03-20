@@ -98,7 +98,7 @@ const BreakfastMenu = () => {
     });
     // console.log(item);
     toast.dismiss();
-    toast.success(`Added ${item.itemName} to cart`)
+    // toast.success(`Added ${item.itemName} to cart`)
     // console.log(orderItems);
   };
   

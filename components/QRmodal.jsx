@@ -2,6 +2,8 @@ import React from "react";
 import QRCode from "react-qr-code";
 
 const QRModal = ({ orderId, onClose }) => {
+
+  // console.log(orderId)
   const verifyUrl = `https://www.wortheat.in/verifyorder/${orderId}`;
 
   return (
