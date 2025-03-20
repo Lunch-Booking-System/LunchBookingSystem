@@ -13,24 +13,14 @@ const Page = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentDone, setPaymentDone] = useState(false);
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [discount, setDiscount] = useState(0);
   const router = useRouter();
-
-  // useEffect(() => {
-  //   const customer = JSON.parse(localStorage.getItem("customer"));
-  //   const localCustomerId = customer?.customerId;
-
-  //   if (!customer || !localCustomerId || localCustomerId !== customerId) {
-  //     toast.dismiss();
-  //     toast.error("Unauthorized access. Redirecting to login page...");
-  //     router.push("/onboardingcustomer/login");
-  //   }
-  // }, []);
 
   useEffect(() => {
     const orderDetails = async () => {
       try {
         const data = await fetchOrderDetails(orderId);
-        // console.log(data);
         setOrder(data);
         if (data.paymentStatus === "Paid") {
           setPaymentDone(true);
@@ -52,17 +42,37 @@ const Page = () => {
     }
   };
 
+  const handleApplyCoupon = async () => {
+    const today = new Date().toISOString().split("T")[0];
+    const totalAfterDiscount = order.totalAmount - 100;
+
+    if (order.totalAmount <= 100) {
+      toast.error("Coupon can only be applied for orders above ₹100.");
+      return;
+    }
+
+    if (couponApplied) {
+      toast.error("Coupon already applied.");
+      return;
+    }
+
+    setDiscount(100);
+    setCouponApplied(true);
+    localStorage.setItem("totalAfterDiscount", totalAfterDiscount.toFixed(2));
+
+    toast.success("Coupon applied! ₹100 discount added.");
+  };
+
   const createOrder = async () => {
     const res = await fetch("/api/createOrder", {
       method: "POST",
-      body: JSON.stringify({ amount: order.totalAmount * 100 }),
+      body: JSON.stringify({ amount: (order.totalAmount - discount) * 100 }),
     });
     const data = await res.json();
 
     const paymentData = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
       order_id: data.id,
-
       handler: async function (response) {
         // verify payment
         const res = await fetch("/api/verifyOrder", {
@@ -75,7 +85,6 @@ const Page = () => {
           }),
         });
         const data = await res.json();
-        // console.log(data);
         if (data.isOk) {
           setPaymentDone(true);
           toast.success("Payment successful");
@@ -102,8 +111,12 @@ const Page = () => {
     );
   if (!order) return <p className="text-center mt-5">No order found.</p>;
 
+  const totalAfterDiscount = couponApplied
+    ? order.totalAmount - discount
+    : order.totalAmount;
+
   return (
-    <div className="min-h-screen flex items-center justify-center md:block mt-8 md:mt-20">
+    <div className="h-screen flex items-center justify-center md:block md:mt-20">
       <Script
         type="text/javascript"
         src="https://checkout.razorpay.com/v1/checkout.js"
@@ -147,12 +160,33 @@ const Page = () => {
             </div>
           ))}
         </div>
+
+        <div className="mt-6 flex justify-between">
+          <h3 className="text-lg font-semibold">If You Want To Apply Coupon</h3>
+          {couponApplied ? (
+            <p className="text-green-600 font-semibold">
+              Coupon Applied: SAVE10 (-₹{discount.toFixed(2)})
+            </p>
+          ) : (
+            <button
+              onClick={handleApplyCoupon}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 mt-2"
+            >
+              Apply Coupon
+            </button>
+          )}
+        </div>
+
         <div className="border border-gray-200 mt-3" />
+
         <div className="flex justify-between my-5">
           <p className="text-xl mr-10 py-3 font-semibold">
             Total Amount:{" "}
-            <span className="font-extrabold">₹{order.totalAmount}</span>
+            <span className="font-extrabold">
+              ₹{totalAfterDiscount.toFixed(2)}
+            </span>
           </p>
+
           {paymentDone ? (
             <div className="flex items-center text-green-600">
               <CheckCircle size={24} className="mr-2" />

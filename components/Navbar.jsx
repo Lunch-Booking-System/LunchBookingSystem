@@ -8,7 +8,6 @@ import Image from "next/image";
 import WortheatIMG from "../assets/NoBG.svg";
 
 const Navbar = ({ mealType, setMealType }) => {
-  // Extract both customerId and vendorId from route parameters
   const { customerId, vendorId } = useParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -17,6 +16,9 @@ const Navbar = ({ mealType, setMealType }) => {
   const [email, setEmail] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // Determine if the current route is myOrders
+  const isMyOrdersPage = pathname.includes("myOrders");
 
   useEffect(() => {
     const getUserInfo = async () => {
@@ -58,12 +60,10 @@ const Navbar = ({ mealType, setMealType }) => {
 
   const handleNavigation = (route) => {
     setIsSidebarOpen(false);
-    // Validate vendorId
     if (!vendorId || vendorId === "null") {
       toast.error("Vendor ID is missing!");
       return;
     }
-    // Navigate using vendorId from the route parameters
     if (["breakfast", "snacks", "weeklymenu"].includes(route)) {
       router.push(`/booking/${customerId}/${vendorId}/${route}`);
       return;
@@ -85,20 +85,31 @@ const Navbar = ({ mealType, setMealType }) => {
         />
       </Link>
 
+      {/* Desktop Navigation */}
       <div className="hidden md:flex py-2 mt-6 text-black">
-        {["breakfast", "snacks", "weeklymenu", "myOrders"].map((route) => (
+        {isMyOrdersPage ? (
           <button
-            key={route}
-            className={`text-[14px] md:text-lg mr-5 cursor-pointer mx-5 mb-2 ${
-              pathname.includes(route)
-                ? "bg-orange-500 text-white p-1 rounded-lg"
-                : ""
-            }`}
-            onClick={() => handleNavigation(route)}
+            key="myOrders"
+            className="text-[14px] md:text-lg mr-5 cursor-pointer mx-5 mb-2 bg-orange-500 text-white p-1 rounded-lg"
+            onClick={() => handleNavigation("myOrders")}
           >
-            {route.charAt(0).toUpperCase() + route.slice(1)}
+            MyOrders
           </button>
-        ))}
+        ) : (
+          ["breakfast", "snacks", "weeklymenu", "myOrders"].map((route) => (
+            <button
+              key={route}
+              className={`text-[14px] md:text-lg mr-5 cursor-pointer mx-5 mb-2 ${
+                pathname.includes(route)
+                  ? "bg-orange-500 text-white p-1 rounded-lg"
+                  : ""
+              }`}
+              onClick={() => handleNavigation(route)}
+            >
+              {route.charAt(0).toUpperCase() + route.slice(1)}
+            </button>
+          ))
+        )}
         {customerId && (
           <div className="relative">
             <p
@@ -123,7 +134,7 @@ const Navbar = ({ mealType, setMealType }) => {
         )}
       </div>
 
-      {/* Hamburger Menu */}
+      {/* Hamburger Menu for Mobile */}
       <div className="md:hidden flex items-center mt-2">
         <Menu
           className="cursor-pointer"
@@ -132,7 +143,7 @@ const Navbar = ({ mealType, setMealType }) => {
         />
       </div>
 
-      {/* Sidebar */}
+      {/* Mobile Sidebar */}
       {isSidebarOpen && (
         <div className="fixed top-0 right-0 w-64 h-full bg-white shadow-lg z-50 flex flex-col p-5 transition-transform duration-1000">
           <X
@@ -140,19 +151,29 @@ const Navbar = ({ mealType, setMealType }) => {
             className="self-end cursor-pointer mb-10 text-red-500 font-extrabold"
             onClick={() => setIsSidebarOpen(false)}
           />
-          {["breakfast", "snacks", "weeklymenu", "myOrders"].map((route) => (
+          {isMyOrdersPage ? (
             <button
-              key={route}
-              className={`text-lg py-2 px-1 mt-4 w-full text-left ${
-                pathname.includes(route)
-                  ? "bg-orange-500 text-white p-1 rounded-lg"
-                  : ""
-              }`}
-              onClick={() => handleNavigation(route)}
+              key="myOrders"
+              className="text-lg py-2 px-1 mt-4 w-full text-left bg-orange-500 text-white p-1 rounded-lg"
+              onClick={() => handleNavigation("myOrders")}
             >
-              {route.charAt(0).toUpperCase() + route.slice(1)}
+              MyOrders
             </button>
-          ))}
+          ) : (
+            ["breakfast", "snacks", "weeklymenu", "myOrders"].map((route) => (
+              <button
+                key={route}
+                className={`text-lg py-2 px-1 mt-4 w-full text-left ${
+                  pathname.includes(route)
+                    ? "bg-orange-500 text-white p-1 rounded-lg"
+                    : ""
+                }`}
+                onClick={() => handleNavigation(route)}
+              >
+                {route.charAt(0).toUpperCase() + route.slice(1)}
+              </button>
+            ))
+          )}
           {customerId && (
             <div className="mt-6 border-t pt-4">
               <p className="text-lg font-semibold">{userName}</p>

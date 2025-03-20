@@ -232,6 +232,7 @@ const BreakfastMenu = () => {
               item={item}
               onOrder={onOrder}
               onRemove={onRemove}
+              isAdded={orderItems.some((orderItem)=> orderItem._id === item._id )}
             />
           ))}
         </div>

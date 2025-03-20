@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { Store, Mail, Phone, MapPin } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -94,6 +94,12 @@ export default function Dashboard() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (selectedVendor) {
+      localStorage.setItem("vendorId", selectedVendor._id);
+    }
+  }, [selectedVendor]);
 
   useEffect(() => {
     const fetchVendors = async () => {
