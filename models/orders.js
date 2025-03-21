@@ -26,7 +26,7 @@ const orderSchema = new Schema(
         },
         category: {
           type: String,
-          enum: ["WeeklyMenu", "BreakFast", "AllDaySnacks"],
+          enum: ["WeeklyMenu", "BreakFast", "AllDaySnacks", "Menu"],
           required: true,
         },
         quantity: {
@@ -58,6 +58,10 @@ const orderSchema = new Schema(
       },
       year: {
         type: Number,
+        required: true,
+      },
+      time: {
+        type: String,
         required: true,
       },
     },

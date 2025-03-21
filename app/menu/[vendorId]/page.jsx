@@ -4,6 +4,7 @@ import VendorNavbar from "@/components/VendorNavbar";
 import toast from "react-hot-toast";
 import { Pencil } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+// import LoadingGif from "../../../assets/LoadingComponentImage.gif";
 
 const Page = () => {
   const router = useRouter();
@@ -36,8 +37,8 @@ const Page = () => {
   const getMenuItems = async () => {
     const res = await fetch("/api/getMenuItems");
     const data = await res.json();
-    // console.log(data)
-    setMenuItems(data);
+    // Extract the menuItems array from the API response
+    setMenuItems(data.menuItems);
   };
 
   const handleEdit = (updatedItem) => {
@@ -98,7 +99,8 @@ const MenuCard = ({ item, onEdit }) => {
       setLoading(false);
       toast.success("Updated menu successfully");
     } else {
-      toast.error("Somthing went wrong Try again.");
+      toast.error("Something went wrong. Try again.");
+      setLoading(false);
     }
   };
 
@@ -187,7 +189,7 @@ const MenuCard = ({ item, onEdit }) => {
           onClick={handleSave}
           className="mt-2 px-4 py-2 bg-green-500 text-white rounded"
         >
-          {loading === true ? "Saving  ..." : "Save"}
+          {loading ? "Saving..." : "Save"}
         </button>
       ) : (
         <button

@@ -8,7 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import LoadingGif from "../../../../../assets/LoadingComponentImage.gif";
 import Image from "next/image";
 import { Dialog } from "@headlessui/react";
-import { ShoppingCart, X } from "lucide-react";
+import { ShoppingCart, X, Trash2, Plus, Minus } from "lucide-react";
 
 const getMonthName = (monthIndex) => {
   const monthNames = [
@@ -27,16 +27,16 @@ const getMonthName = (monthIndex) => {
   ];
   return monthNames[monthIndex];
 };
+
 const getDayName = (dayIndex) => {
   const dayNames = [
     "Sunday",
     "Monday",
     "Tuesday",
     "Wednesday",
-    "Thrusday",
+    "Thursday",
     "Friday",
     "Saturday",
-    "August",
   ];
   return dayNames[dayIndex];
 };
@@ -45,10 +45,10 @@ const BreakfastMenu = () => {
   const { customerId } = useParams();
   const [breakfastItems, setBreakfastItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [orderLoading, setOrderLoading] = useState(false);
   const [error, setError] = useState("");
   const [orderItems, setOrderItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  // New state for showing the "cart cleared" message in the popup.
   const [clearMessage, setClearMessage] = useState("");
   const router = useRouter();
 
@@ -61,7 +61,7 @@ const BreakfastMenu = () => {
       toast.error("Unauthorized access. Redirecting to login page...");
       router.push(`/vendorDashboard/${customerId}`);
     }
-  }, [customerId]);
+  }, [customerId, router]);
 
   useEffect(() => {
     fetchBreakfastMenu();
@@ -118,6 +118,12 @@ const BreakfastMenu = () => {
   };
 
   const submitOrder = async () => {
+    if (orderItems.length === 0) {
+      toast.error("Your cart is empty");
+      return;
+    }
+
+    setOrderLoading(true);
     const totalAmount = orderItems.reduce(
       (acc, item) => acc + item.price * item.quantity,
       0
@@ -126,7 +132,7 @@ const BreakfastMenu = () => {
     const d = new Date();
     const dayName = getDayName(d.getDay());
     const month = getMonthName(d.getMonth());
-    const vendorId = breakfastItems[0].vendor;
+    const vendorId = breakfastItems[0]?.vendor;
     const orderData = {
       customer: customerId,
       vendor: vendorId,
@@ -143,8 +149,11 @@ const BreakfastMenu = () => {
         dayName: dayName,
         month: month,
         year: d.getFullYear(),
+        time: d.toLocaleTimeString(),
       },
     };
+
+    
 
     try {
       const response = await fetch("/api/addOrders", {
@@ -165,6 +174,8 @@ const BreakfastMenu = () => {
     } catch (err) {
       toast.dismiss();
       toast.error(err.message);
+    } finally {
+      setOrderLoading(false);
     }
   };
 
@@ -175,7 +186,6 @@ const BreakfastMenu = () => {
     );
   };
 
-  // Updated clear cart action: clears the cart, shows a message for 2 seconds.
   const handleClearOrder = () => {
     setOrderItems([]);
     toast.dismiss();
@@ -205,163 +215,269 @@ const BreakfastMenu = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen text-center text-lg font-semibold">
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <Image
           src={LoadingGif}
-          className="md:ml-[35%] mt-[55%] md:mt-[15%]"
           alt="loader"
+          className="w-64 h-64 object-contain"
         />
+        <p className="mt-4 text-lg font-medium text-gray-600">
+          Loading menu...
+        </p>
       </div>
     );
-  if (error) return <p className="text-center text-red-500">{error}</p>;
+
+  if (error)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center bg-red-50 p-8 rounded-lg shadow-md">
+          <p className="text-xl text-red-600 font-semibold mb-2">
+            Something went wrong
+          </p>
+          <p className="text-gray-700">{error}</p>
+          <button
+            onClick={fetchBreakfastMenu}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
 
   return (
     <div className="bg-gray-50 min-h-screen">
       <Navbar />
-      <div className="container  mx-auto p-7 md:px-4 ">
-        <div className="flex justify-between items-center mb-5">
-          <h1 className="ml-12 text-3xl sm:text-4xl font-bold text-gray-900 flex items-center">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 flex items-center mb-4 md:mb-0">
             <span className="bg-orange-600 w-2 h-8 rounded mr-3 inline-block"></span>
             Breakfast
           </h1>
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mx-10 md:mx-20">
-          {breakfastItems.map((item) => (
-            <MenuCard
-              key={item._id}
-              item={item}
-              onOrder={onOrder}
-              onRemove={onRemove}
-              isAdded={orderItems.some((orderItem)=> orderItem._id === item._id )}
-            />
-          ))}
+
+        {/* Item count */}
+        <p className="text-gray-600 mb-6 ml-2">
+          Showing {breakfastItems.length} items
+        </p>
+
+        {/* Menu Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {breakfastItems.length > 0 ? (
+            breakfastItems.map((item) => (
+              <MenuCard
+                key={item._id}
+                item={item}
+                onOrder={onOrder}
+                onRemove={onRemove}
+                isAdded={orderItems.some(
+                  (orderItem) => orderItem._id === item._id
+                )}
+              />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-xl text-gray-500">No items found</p>
+            </div>
+          )}
         </div>
 
-        {/* Order Details */}
+        {/* Empty state when no items at all */}
+        {breakfastItems.length === 0 && !loading && !error && (
+          <div className="text-center py-16">
+            <p className="text-2xl text-gray-500 mb-4">
+              No breakfast items available
+            </p>
+            <p className="text-gray-500">
+              Check back later for our delicious breakfast menu!
+            </p>
+          </div>
+        )}
+
+        {/* Order Details Bottom Bar */}
         {orderItems.length > 0 && (
-          <div className="fixed bottom-0 left-0 w-full bg-white shadow-lg p-4 z-50 bg-opacity-95">
-            <div className="flex justify-between items-center text-center">
-              <div className="md:flex md:flex-wrap md:w-1/2">
-                <div className="">
-                  <button
-                    onClick={() => setIsCartOpen(true)}
-                    className="flex bg-blue-600 text-white px-3 md:px-5 py-1 md:py-3 rounded-lg font-semibold shadow-md hover:bg-blue-700"
-                  >
-                    <span className="mr-3">
-                      <ShoppingCart />
-                    </span>{" "}
-                    View Cart ({orderItems.length})
-                  </button>
+          <div className="fixed bottom-0 left-0 w-full bg-white shadow-xl p-4 z-40 border-t border-gray-200">
+            <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
+              <div className="flex items-center mb-3 md:mb-0">
+                <button
+                  onClick={() => setIsCartOpen(true)}
+                  className="flex items-center bg-blue-600 text-white px-4 py-3 rounded-lg font-medium shadow-md hover:bg-blue-700 transition-colors"
+                >
+                  <ShoppingCart size={20} className="mr-2" />
+                  <span className="mr-2">View Cart</span>
+                  <span className="bg-white text-blue-600 rounded-full w-6 h-6 flex items-center justify-center font-bold">
+                    {orderItems.reduce((acc, item) => acc + item.quantity, 0)}
+                  </span>
+                </button>
+                <div className="ml-4 text-lg font-bold">
+                  Total: ₹{calculateTotalPrice()}
                 </div>
               </div>
-              <div className="md:flex justify-evenly">
-                <div className="flex md:block">
-                  <button
-                    onClick={handleOrder}
-                    className={`md:h-[50px] mt-2 mx-2 px-3 md:px-5 py-1 mb-2 md:py-3 rounded-lg font-semibold ${
-                      loading
-                        ? "bg-white border-2 border-blue-500 text-blue-500"
-                        : "text-white border-2 border-green-500 bg-green-500 hover:bg-white hover:text-green-500"
-                    }`}
-                    disabled={loading}
-                  >
-                    {loading ? "Processing..." : "Confirm Order"}
-                  </button>
-                </div>
-              </div>
+              <button
+                onClick={handleOrder}
+                disabled={orderLoading}
+                className={`w-full md:w-auto px-6 py-3 rounded-lg font-semibold text-white ${
+                  orderLoading
+                    ? "bg-green-400"
+                    : "bg-green-500 hover:bg-green-600"
+                } transition-colors shadow-md flex items-center justify-center`}
+              >
+                {orderLoading ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  "Confirm Order"
+                )}
+              </button>
             </div>
           </div>
         )}
 
+        {/* Cart Dialog */}
         <Dialog
           open={isCartOpen}
           onClose={() => setIsCartOpen(false)}
           className="relative z-50"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center">
-            <Dialog.Panel className="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md">
-              <div className="flex justify-between items-center">
-                <Dialog.Title className="text-lg font-bold mb-4 text-gray-800">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <Dialog.Panel className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-auto">
+              <div className="flex justify-between items-center border-b pb-4">
+                <Dialog.Title className="text-xl font-bold text-gray-800">
                   Your Cart
                 </Dialog.Title>
                 <button
                   onClick={() => setIsCartOpen(false)}
-                  className="flex mb-4"
+                  className="p-1 rounded-full hover:bg-gray-100"
                 >
-                  <X
-                    size={24}
-                    className="text-black rounded-lg font-bold border-2 border-red-500 hover:text-red-500"
-                  />
+                  <X size={24} className="text-gray-500" />
                 </button>
               </div>
 
-              {/* Show clear message if available */}
+              {/* Clear message */}
               {clearMessage && (
-                <p className="text-center text-green-600 font-bold mb-4">
+                <div className="my-4 p-3 bg-green-50 text-green-700 rounded-lg text-center font-medium">
                   {clearMessage}
-                </p>
+                </div>
               )}
 
+              {/* Cart items */}
               {orderItems.length ? (
-                <div className="mt-4">
+                <div className="mt-4 space-y-4">
                   {orderItems.map((item) => (
                     <div
                       key={item._id}
-                      className="flex items-center justify-between border-b py-2"
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <img
-                          src={item.imageUrl}
-                          width={50}
-                          height={50}
-                          alt={item.itemName}
-                          className="rounded-lg"
-                        />
-                        <span className="text-md font-medium">
-                          {item.itemName}
-                        </span>
+                        <div className="flex-shrink-0 w-16 h-16 overflow-hidden rounded-lg bg-white shadow-sm">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.itemName}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <h3 className="font-medium">{item.itemName}</h3>
+                          <p className="text-gray-500 text-sm">
+                            {item.category}
+                          </p>
+                          <p className="text-orange-600 font-semibold">
+                            ₹{item.price}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-5">
+                      <div className="flex items-center gap-3">
                         <button
                           onClick={() => decreaseQuantity(item)}
-                          className="px-4 py-1 bg-white text-black rounded-lg border border-gray-300 font-bold"
+                          className="p-1 rounded-full border border-gray-300 hover:bg-gray-200 transition-colors"
                         >
-                          -
+                          <Minus size={16} />
                         </button>
-                        <span className="text-lg font-bold">
+                        <span className="w-8 text-center font-bold">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => onOrder(item, 1)}
-                          className="px-4 py-1 bg-white text-black border border-gray-300 rounded-lg font-bold"
+                          className="p-1 rounded-full border border-gray-300 hover:bg-gray-200 transition-colors"
                         >
-                          +
+                          <Plus size={16} />
                         </button>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center">
-                  {!clearMessage && <p>Your cart is empty.</p>}
+                <div className="flex flex-col items-center justify-center py-12">
+                  {!clearMessage && (
+                    <>
+                      <ShoppingCart size={64} className="text-gray-300 mb-4" />
+                      <p className="text-gray-500 text-lg">
+                        Your cart is empty
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
 
-              <div className="mt-6 flex justify-between items-center">
-                <p className="text-lg font-bold">
-                  Total: ₹{calculateTotalPrice()}
-                </p>
-                <div>
-                  {orderItems.length ? (
+              {/* Cart footer */}
+              <div className="mt-6 pt-4 border-t">
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-lg font-bold">Total:</p>
+                  <p className="text-xl font-bold text-orange-600">
+                    ₹{calculateTotalPrice()}
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  {orderItems.length > 0 && (
                     <button
                       onClick={handleClearOrder}
-                      className="px-3 py-1 rounded-lg font-bold border-2 border-red-500 bg-white text-red-500"
-                      disabled={loading}
+                      className="flex items-center justify-center px-4 py-2 rounded-lg font-medium text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors"
                     >
+                      <Trash2 size={18} className="mr-2" />
                       Clear Cart
                     </button>
-                  ) : null}
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      if (orderItems.length > 0) {
+                        handleOrder();
+                      }
+                    }}
+                    disabled={orderItems.length === 0 || orderLoading}
+                    className={`flex-1 py-3 rounded-lg font-semibold text-white ${
+                      orderItems.length === 0 || orderLoading
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-green-500 hover:bg-green-600"
+                    } transition-colors`}
+                  >
+                    {orderLoading ? "Processing..." : "Checkout"}
+                  </button>
                 </div>
               </div>
             </Dialog.Panel>

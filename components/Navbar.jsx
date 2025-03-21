@@ -2,7 +2,7 @@
 import { useParams, usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { ChevronDown, LogOut, Menu, X } from "lucide-react";
+import { ChevronDown, LogOut, Menu, X, User, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import WortheatIMG from "../assets/NoBG.svg";
@@ -64,7 +64,7 @@ const Navbar = ({ mealType, setMealType }) => {
       toast.error("Vendor ID is missing!");
       return;
     }
-    if (["breakfast", "snacks", "weeklymenu"].includes(route)) {
+    if (["breakfast", "snacks", "Lunch", "specials"].includes(route)) {
       router.push(`/booking/${customerId}/${vendorId}/${route}`);
       return;
     }
@@ -75,120 +75,208 @@ const Navbar = ({ mealType, setMealType }) => {
     router.push(`/booking/${customerId}/${vendorId}/${route}`);
   };
 
-  return (
-    <div className="flex justify-between md:gap-x-5 shadow-xl h-18 overflow-x-hidden px-4 md:px-8">
-      <Link href="/">
-        <Image
-          src={WortheatIMG}
-          alt="Wortheat Logo"
-          className="w-[110px] md:w-[150px] mt-2"
-        />
-      </Link>
+  // Navigation menu items
+  const navItems = [
+    { name: "Breakfast", route: "breakfast" },
+    { name: "Snacks", route: "snacks" },
+    { name: "Lunch/Dinner", route: "Lunch/Dinner" },
+    { name: "Specials", route: "specials" },
+    { name: "My Orders", route: "myOrders", icon: <ShoppingBag size={20} /> },
+  ];
 
-      {/* Desktop Navigation */}
-      <div className="hidden md:flex py-2 mt-6 text-black">
-        {isMyOrdersPage ? (
-          <button
-            key="myOrders"
-            className="text-[14px] md:text-lg mr-5 cursor-pointer mx-5 mb-2 bg-orange-500 text-white p-1 rounded-lg"
-            onClick={() => handleNavigation("myOrders")}
+  return (
+    <nav className="sticky top-0 z-40 bg-white shadow-md mb-5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-20 ">
+          {/* Logo */}
+          <Link
+            href={`/booking/${customerId}/${vendorId}/breakfast`}
+            className="flex-shrink-0 flex items-center "
           >
-            MyOrders
-          </button>
-        ) : (
-          ["breakfast", "snacks", "weeklymenu", "myOrders"].map((route) => (
-            <button
-              key={route}
-              className={`text-[14px] md:text-lg mr-5 cursor-pointer mx-5 mb-2 ${
-                pathname.includes(route)
-                  ? "bg-orange-500 text-white p-1 rounded-lg"
-                  : ""
-              }`}
-              onClick={() => handleNavigation(route)}
-            >
-              {route.charAt(0).toUpperCase() + route.slice(1)}
-            </button>
-          ))
-        )}
-        {customerId && (
-          <div className="relative">
-            <p
-              className="text-black flex text-[14px] md:text-lg cursor-pointer duration-150 mr-5 mt-1"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
-              {userName} <ChevronDown className="md:ml-1 size-30" />
-            </p>
-            {isDropdownOpen && (
-              <div className="absolute right-0 bg-white shadow-md rounded-md p-2 w-40">
-                <p className="text-sm">Email: {email}</p>
-                <hr className="my-2" />
-                <p
-                  onClick={handleLogOut}
-                  className="flex cursor-pointer duration-200 text-red-500"
+            <Image
+              src={WortheatIMG}
+              alt="Wortheat Logo"
+              className="w-[130px] md:w-[160px]"
+            />
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-2">
+            {isMyOrdersPage ? (
+              <button
+                key="myOrders"
+                className="flex items-center px-5 py-3 text-base font-medium rounded-md bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                onClick={() => handleNavigation("myOrders")}
+              >
+                <ShoppingBag size={20} className="mr-2" />
+                My Orders
+              </button>
+            ) : (
+              navItems.map((item) => (
+                <button
+                  key={item.route}
+                  className={`flex items-center px-5 py-3 text-base font-medium rounded-md transition-colors ${
+                    pathname.includes(item.route)
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-700 hover:bg-orange-100 hover:text-orange-600"
+                  }`}
+                  onClick={() => handleNavigation(item.route)}
                 >
-                  <LogOut className="mr-3" /> Log out
-                </p>
-              </div>
+                  {item.icon && <span className="mr-2">{item.icon}</span>}
+                  {item.name}
+                </button>
+              ))
             )}
           </div>
-        )}
-      </div>
 
-      {/* Hamburger Menu for Mobile */}
-      <div className="md:hidden flex items-center mt-2">
-        <Menu
-          className="cursor-pointer"
-          size={30}
-          onClick={() => setIsSidebarOpen(true)}
-        />
+          {/* User Profile Section */}
+          {customerId && (
+            <div className="hidden md:flex items-center">
+              <div className="relative">
+                <button
+                  className={`flex items-center px-5 py-3 text-base font-medium rounded-md text-gray-700 ${
+                    isDropdownOpen ? "bg-gray-100" : "hover:bg-gray-100"
+                  } transition-colors`}
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  <User size={20} className="mr-2" />
+                  <span className="max-w-[150px] truncate">{userName}</span>
+                  <ChevronDown
+                    size={18}
+                    className={`ml-2 transition-transform duration-200 ${
+                      isDropdownOpen ? "transform rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 transition-all">
+                    <div className="py-4 px-5 border-b border-gray-100">
+                      <p className="text-base font-medium text-gray-900">
+                        {userName}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1 truncate">
+                        {email}
+                      </p>
+                    </div>
+                    <div className="py-2">
+                      <button
+                        onClick={handleLogOut}
+                        className="flex w-full items-center px-5 py-3 text-base text-red-600 hover:bg-gray-100"
+                      >
+                        <LogOut size={20} className="mr-2" />
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="inline-flex items-center justify-center p-3 rounded-md text-gray-700 hover:text-orange-500 hover:bg-gray-100 focus:outline-none"
+            >
+              <Menu size={28} />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Mobile Sidebar */}
       {isSidebarOpen && (
-        <div className="fixed top-0 right-0 w-64 h-full bg-white shadow-lg z-50 flex flex-col p-5 transition-transform duration-1000">
-          <X
-            size={30}
-            className="self-end cursor-pointer mb-10 text-red-500 font-extrabold"
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
             onClick={() => setIsSidebarOpen(false)}
-          />
-          {isMyOrdersPage ? (
-            <button
-              key="myOrders"
-              className="text-lg py-2 px-1 mt-4 w-full text-left bg-orange-500 text-white p-1 rounded-lg"
-              onClick={() => handleNavigation("myOrders")}
-            >
-              MyOrders
-            </button>
-          ) : (
-            ["breakfast", "snacks", "weeklymenu", "myOrders"].map((route) => (
+          ></div>
+
+          {/* Sidebar */}
+          <div className="fixed top-0 right-0 w-80 h-full bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out">
+            <div className="flex items-center justify-between p-5 border-b">
+              <Image
+                src={WortheatIMG}
+                alt="Wortheat Logo"
+                className="w-[120px]"
+              />
               <button
-                key={route}
-                className={`text-lg py-2 px-1 mt-4 w-full text-left ${
-                  pathname.includes(route)
-                    ? "bg-orange-500 text-white p-1 rounded-lg"
-                    : ""
-                }`}
-                onClick={() => handleNavigation(route)}
+                onClick={() => setIsSidebarOpen(false)}
+                className="rounded-full p-2 hover:bg-gray-100 text-gray-500"
               >
-                {route.charAt(0).toUpperCase() + route.slice(1)}
-              </button>
-            ))
-          )}
-          {customerId && (
-            <div className="mt-6 border-t pt-4">
-              <p className="text-lg font-semibold">{userName}</p>
-              <p className="text-sm text-gray-500">{email}</p>
-              <button
-                onClick={handleLogOut}
-                className="flex items-center text-red-500 mt-4"
-              >
-                <LogOut className="mr-2" /> Log out
+                <X size={28} />
               </button>
             </div>
-          )}
-        </div>
+
+            <div className="overflow-y-auto h-full pb-24">
+              {customerId && (
+                <div className="p-5 border-b">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-orange-100 rounded-full p-3">
+                      <User size={28} className="text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-medium">{userName}</p>
+                      <p className="text-sm text-gray-500 truncate">{email}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="p-5 flex flex-col space-y-3">
+                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  Menu
+                </p>
+                {isMyOrdersPage ? (
+                  <button
+                    key="myOrders"
+                    className="flex items-center px-4 py-3 rounded-md text-white bg-orange-500 text-base"
+                    onClick={() => handleNavigation("myOrders")}
+                  >
+                    <ShoppingBag size={22} className="mr-3" />
+                    My Orders
+                  </button>
+                ) : (
+                  navItems.map((item) => (
+                    <button
+                      key={item.route}
+                      className={`flex items-center px-4 py-3 rounded-md text-base ${
+                        pathname.includes(item.route)
+                          ? "bg-orange-500 text-white"
+                          : "text-gray-700 hover:bg-orange-100"
+                      }`}
+                      onClick={() => handleNavigation(item.route)}
+                    >
+                      {item.icon ? (
+                        <span className="mr-3">{item.icon}</span>
+                      ) : (
+                        <div className="w-5 h-5 mr-3" />
+                      )}
+                      {item.name}
+                    </button>
+                  ))
+                )}
+              </div>
+
+              {customerId && (
+                <div className="absolute bottom-0 left-0 right-0 p-5 border-t bg-white">
+                  <button
+                    onClick={handleLogOut}
+                    className="flex items-center justify-center w-full px-4 py-3 text-base font-medium text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors"
+                  >
+                    <LogOut size={20} className="mr-2" />
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
       )}
-    </div>
+    </nav>
   );
 };
 

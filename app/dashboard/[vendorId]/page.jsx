@@ -35,7 +35,7 @@ export default function VendorDashboard() {
         setSelectedDate(getTodayUTC());
       }
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (vendorId && selectedDate) {
@@ -103,6 +103,7 @@ export default function VendorDashboard() {
         "Total Amount (₹)": order.totalAmount,
         Status: order.status,
         Company: order.customer.company,
+        Time: order.orderDate?.time || "N/A",
       };
     });
 
@@ -114,7 +115,6 @@ export default function VendorDashboard() {
     XLSX.writeFile(workbook, fileName);
   };
 
-  // Compute the summary: total quantity for each item (by itemName)
   const summary = orders.reduce((acc, order) => {
     order.items.forEach((item) => {
       const itemName = item.itemId?.itemName;
@@ -130,7 +130,6 @@ export default function VendorDashboard() {
       <VendorNavbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 mb-12">
-        {/* Page header with improved styling */}
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 flex items-center">
             <span className="bg-orange-600 w-2 h-8 rounded mr-3 inline-block"></span>
@@ -141,7 +140,6 @@ export default function VendorDashboard() {
           </p>
         </div>
 
-        {/* Controls section with enhanced styling */}
         <div className="bg-gray-200 rounded-xl shadow-lg overflow-hidden mb-8 border border-gray-300">
           <div className="p-5 sm:p-6 bg-gradient-to-r from-indigo-50 to-gray-100">
             <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-end">
@@ -248,7 +246,7 @@ export default function VendorDashboard() {
           </div>
         </div>
 
-        {/* Summary Section - Enhanced Table Format */}
+        {/* Summary Section */}
         {!loading && Object.keys(summary).length > 0 && (
           <div className="bg-gray-200 rounded-xl shadow-lg overflow-hidden mb-8 border border-gray-300">
             <div className="px-6 py-5 border-b border-gray-300 bg-gradient-to-r from-purple-50 to-gray-200">
@@ -302,7 +300,6 @@ export default function VendorDashboard() {
                           key={i}
                           className={i % 4 === 0 ? "bg-gray-100" : "bg-white"}
                         >
-                          {/* First item */}
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {first[0]}
                           </td>
@@ -311,7 +308,6 @@ export default function VendorDashboard() {
                               {first[1]} items
                             </span>
                           </td>
-                          {/* Second item (if exists) */}
                           {second ? (
                             <>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -340,7 +336,7 @@ export default function VendorDashboard() {
           </div>
         )}
 
-        {/* Orders Table section - Enhanced */}
+        {/* Orders Table Section */}
         <div className="bg-gray-200 rounded-xl shadow-lg overflow-hidden border border-gray-300">
           <div className="px-6 py-5 border-b border-gray-300 bg-gradient-to-r from-indigo-50 to-gray-200">
             <h2 className="text-xl font-semibold text-gray-800 flex items-center">
@@ -358,7 +354,7 @@ export default function VendorDashboard() {
             </div>
           ) : filteredOrders.length > 0 ? (
             <div>
-              {/* Desktop view - Enhanced Full table */}
+              {/* Desktop view */}
               <div className="hidden md:block">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-300">
@@ -369,6 +365,12 @@ export default function VendorDashboard() {
                           className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
                         >
                           Order ID
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
+                        >
+                          Time
                         </th>
                         <th
                           scope="col"
@@ -414,6 +416,9 @@ export default function VendorDashboard() {
                         >
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 max-w-xs truncate border-l-2 border-transparent hover:border-indigo-500">
                             {order._id}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {order.orderDate?.time || "N/A"}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 uppercase">
                             {order.customer.firstName} {order.customer.lastName}
@@ -463,7 +468,7 @@ export default function VendorDashboard() {
                 </div>
               </div>
 
-              {/* Mobile view - Enhanced Card style tables */}
+              {/* Mobile view */}
               <div className="block md:hidden">
                 <div className="grid grid-cols-1 gap-4 p-4 bg-gray-100">
                   {filteredOrders.map((order) => (
@@ -496,6 +501,14 @@ export default function VendorDashboard() {
                               </td>
                               <td className="py-2 text-sm text-gray-900 font-medium">
                                 {order.customer.company}
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="py-2 text-sm font-medium text-gray-500 w-1/3">
+                                Time:
+                              </td>
+                              <td className="py-2 text-sm text-gray-900 font-medium">
+                                {order.orderDate?.time || "N/A"}
                               </td>
                             </tr>
                             <tr>

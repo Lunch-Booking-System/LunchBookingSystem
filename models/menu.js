@@ -5,47 +5,47 @@ const menuSchema = new Schema(
     itemName: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
-    description:{
-      type:String,
-      required:true
+    description: {
+      type: String,
+      required: true,
     },
-    type:{
-      type:String,
-      required:true
+    type: {
+      type: String,
+      required: true,
     },
-    imageUrl:{
-      type:String,
-      required:true
+    imageUrl: {
+      type: String,
+      required: true,
     },
     price: {
       type: Number,
-      required: true
+      required: true,
     },
     menuDate: {
       date: {
         type: Number,
-        required: true
+        required: true,
       },
       dayName: {
         type: String,
-        required: true
+        required: true,
       },
       month: {
         type: String,
-        required: true
+        required: true,
       },
       year: {
         type: Number,
-        required: true
-      }
+        required: true,
+      },
     },
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",
-      required: true
-    }
+      required: true,
+    },
   },
   { timestamps: true }
 );

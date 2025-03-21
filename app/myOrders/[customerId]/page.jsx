@@ -108,13 +108,27 @@ const OrderCard = ({ order }) => {
   const [totalAfterDiscount, setTotalAfterDiscount] = useState(0);
 
   useEffect(() => {
-    if (order.paymentStatus !== "Paid") {
-      setTotalAfterDiscount(0);
-    } else {
-      const storedTotal = localStorage.getItem("totalAfterDiscount");
-      setTotalAfterDiscount(storedTotal ? Number(storedTotal) : 0);
+    if (order.paymentStatus === "Paid") {
+      const storedTotal = localStorage.getItem(
+        `totalAfterDiscount_${order._id}`
+      );
+      setTotalAfterDiscount(
+        storedTotal ? Number(storedTotal) : order.totalAmount
+      );
     }
-  }, [order.paymentStatus]);
+  }, [order.paymentStatus, order._id]);
+
+  useEffect(() => {
+    if (order.paymentStatus === "Paid") {
+      let calculatedDiscountedTotal = order.totalAmount - 100; // Example 10% discount
+      calculatedDiscountedTotal = Math.max(0, calculatedDiscountedTotal);
+      localStorage.setItem(
+        `totalAfterDiscount_${order._id}`,
+        calculatedDiscountedTotal
+      );
+      setTotalAfterDiscount(calculatedDiscountedTotal);
+    }
+  }, [order.paymentStatus, order.totalAmount, order._id]);
 
   const handleCancelOrder = async (orderId) => {
     if (!orderId) {
