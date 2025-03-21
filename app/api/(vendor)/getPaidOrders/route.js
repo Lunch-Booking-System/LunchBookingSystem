@@ -7,13 +7,11 @@ import { connectMongoDB } from "@/lib/mongodb";
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    // console.log("Raw URL:", req.url);
-    // console.log("Search Params:", Object.fromEntries(searchParams));
+
 
     const vendorId = searchParams.get("vendorId");
     const selectedDate = searchParams.get("selectedDate");
 
-    // console.log("Received params:", { vendorId, selectedDate });
 
     if (!vendorId || !selectedDate) {
       return NextResponse.json(
@@ -50,7 +48,7 @@ export async function GET(req) {
 
     // console.log("Found orders:", orders.length);
 
-    // Calculate summary
+    
     const summary = orders.reduce((acc, order) => {
       order.items.forEach((item) => {
         const itemType = item.itemId?.type || "unknown";

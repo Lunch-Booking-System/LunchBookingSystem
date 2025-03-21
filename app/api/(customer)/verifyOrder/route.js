@@ -3,10 +3,8 @@ import crypto from "crypto";
 import Orders from "@/models/orders";
 import { connectMongoDB } from "@/lib/mongodb";
 
-const generatedSignature = (
-  razorpayOrderId,
-  razorpayPaymentId) => {
-  const keySecret = process.env.RAZORPAY_SECRET_ID ;
+const generatedSignature = (razorpayOrderId, razorpayPaymentId) => {
+  const keySecret = process.env.RAZORPAY_SECRET_ID;
 
   const sig = crypto
     .createHmac("sha256", keySecret)
@@ -16,7 +14,7 @@ const generatedSignature = (
 };
 
 export async function POST(request) {
-  const { orderId,razorpayorderId, razorpayPaymentId, razorpaySignature } =
+  const { orderId, razorpayorderId, razorpayPaymentId, razorpaySignature } =
     await request.json();
 
   const signature = generatedSignature(razorpayorderId, razorpayPaymentId);
@@ -29,21 +27,25 @@ export async function POST(request) {
 
   await connectMongoDB();
 
-    // Update order's payment status
-    const updatedOrder = await Orders.findByIdAndUpdate(
-      orderId,
-      { paymentStatus: "Paid" },
-      { new: true }
-    );
+  // Update order's payment status
+  const updatedOrder = await Orders.findByIdAndUpdate(
+    orderId,
+    { paymentStatus: "Paid" },
+    { new: true }
+  );
 
-    if (!updatedOrder) {
-      return NextResponse.json(
-        { message: "Order not found", isOk: false },
-        { status: 404 }
-      );
-    }
+  if (!updatedOrder) {
     return NextResponse.json(
-      { message: "Payment verified successfully", isOk: true, order: updatedOrder },
-      { status: 200 }
+      { message: "Order not found", isOk: false },
+      { status: 404 }
     );
+  }
+  return NextResponse.json(
+    {
+      message: "Payment verified successfully",
+      isOk: true,
+      order: updatedOrder,
+    },
+    { status: 200 }
+  );
 }

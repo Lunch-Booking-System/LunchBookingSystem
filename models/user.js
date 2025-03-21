@@ -4,48 +4,48 @@ const userSchema = new Schema(
   {
     firstName: {
       type: String,
-      required: true
+      required: true,
     },
     lastName: {
       type: String,
-      required: true
+      required: true,
     },
     empId: {
       type: String,
       required: true,
-      default:"EmpId1234"
+      default: "EmpId1234",
     },
     email: {
       type: String,
-      required: true
+      required: true,
     },
     address: {
       type: String,
-      required: true
+      required: true,
     },
     company: {
       type: String,
-      required: true
+      required: true,
     },
     password: {
       type: String,
-      required: true
+      required: true,
     },
     orders: [
       {
         menuItem: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Menu"  
+          ref: "Menu",
         },
         quantity: {
           type: Number,
-          default: 1
+          default: 1,
         },
         price: {
           type: Number,
-          default: 0
-        }
-      }
+          default: 0,
+        },
+      },
     ],
   },
   { timestamps: true }

@@ -5,11 +5,18 @@ import Orders from "@/models/orders";
 export async function POST(req) {
   try {
     await connectMongoDB();
-    
+
     const body = await req.json();
     const { customer, vendor, items, totalAmount, orderDate } = body;
 
-    if (!customer || !vendor || !items || !totalAmount || !orderDate) {
+    if (
+      !customer ||
+      !vendor ||
+      !items ||
+      !totalAmount ||
+      !orderDate ||
+      !orderDate.time
+    ) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }

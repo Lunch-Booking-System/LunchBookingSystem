@@ -19,7 +19,7 @@ export async function GET(req) {
 
     await connectMongoDB(); // Ensure DB connection
 
-    // Query orders, excluding orders with "WeeklyMenu" category
+    // Query orders with populated itemId field
     const orders = await Orders.find({
       "customer": customerId,
       "orderDate.date": date,
@@ -32,14 +32,24 @@ export async function GET(req) {
         }
       },
       "paymentStatus": "Pending"
-    }).populate("customer")
+    }).populate({
+      path: 'items.itemId',
+      select: 'itemName imageUrl price' // Only select the fields we need
+    })
+    .populate("customer")
     .populate("vendor")
     .populate("items.itemId")
-    
+
+    if (!orders) {
+      return NextResponse.json({ message: "No orders found" }, { status: 404 });
+    }
 
     return NextResponse.json(orders, { status: 200 });
   } catch (error) {
     console.error("Error fetching orders:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
