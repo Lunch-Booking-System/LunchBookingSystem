@@ -8,13 +8,23 @@ import { useParams, useRouter } from "next/navigation";
 import LoadingGif from "../../../../../../assets/LoadingComponentImage.gif";
 import Image from "next/image";
 import { Dialog } from "@headlessui/react";
-import { ShoppingCart, X } from "lucide-react";
+import {
+  ShoppingCart,
+  X,
+  ArrowRight,
+  Loader,
+  Minus,
+  Plus,
+  Trash2,
+} from "lucide-react";
 
 const MealMenu = ({ mealType }) => {
   const { customerId } = useParams();
   const router = useRouter();
 
   const [mealItems, setMealItems] = useState([]);
+  const [clearMessage, setClearMessage] = useState("");
+  const [orderLoading, setOrderLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [orderItems, setOrderItems] = useState([]);
@@ -255,98 +265,252 @@ const MealMenu = ({ mealType }) => {
         </div>
       </div>
 
-      {/* Order Details Bar */}
+      {/* Order Details Bottom Bar */}
       {orderItems.length > 0 && (
-        <div className="fixed bottom-0 left-0 w-full bg-white shadow-lg p-4 z-50 bg-opacity-95">
-          <div className="container mx-auto px-4 md:px-8 flex justify-between items-center">
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="flex items-center bg-blue-600 text-white px-3 md:px-5 py-2 rounded-lg font-semibold shadow-md hover:bg-blue-700"
-            >
-              <ShoppingCart className="mr-2" /> View Cart ({orderItems.length})
-            </button>
-            <button
-              onClick={handleOrder}
-              className="px-5 py-2 rounded-lg font-semibold bg-green-500 border border-green-500 text-white hover:bg-white hover:text-green-500"
-            >
-              Confirm Order
-            </button>
+        <div className="fixed bottom-0 left-0 w-full bg-white shadow-xl border-t border-gray-200 z-40">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+                <div className="flex items-center bg-gray-100 px-4 py-2 rounded-lg">
+                  <span className="text-gray-700 font-medium mr-2">Items:</span>
+                  <span className="text-blue-600 font-bold text-lg">
+                    {orderItems.reduce((acc, item) => acc + item.quantity, 0)}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => setIsCartOpen(true)}
+                  className="flex items-center bg-blue-50 text-blue-600 border border-blue-200 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors sm:hidden"
+                >
+                  <ShoppingCart size={18} className="mr-2" />
+                  View Cart
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button
+                  onClick={() => setIsCartOpen(true)}
+                  className="hidden sm:flex items-center bg-blue-50 text-blue-600 border border-blue-200 px-4 py-3 rounded-lg font-medium hover:bg-blue-100 transition-colors"
+                >
+                  <ShoppingCart size={18} className="mr-2" />
+                  <span className="mr-2">View Cart</span>
+                  <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold">
+                    {orderItems.reduce((acc, item) => acc + item.quantity, 0)}
+                  </span>
+                </button>
+
+                <button
+                  onClick={handleOrder}
+                  disabled={orderLoading}
+                  className={`w-full sm:w-auto px-6 py-3 rounded-lg font-semibold text-white ${
+                    orderLoading
+                      ? "bg-green-400"
+                      : "bg-green-600 hover:bg-green-700"
+                  } transition-colors shadow-md flex items-center justify-center`}
+                >
+                  {orderLoading ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <span>Confirm Order</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 ml-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
-
       {/* Cart Modal */}
       <Dialog
         open={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         className="relative z-50"
       >
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center">
-          <Dialog.Panel className="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md">
-            <div className="flex justify-between items-center">
-              <Dialog.Title className="text-lg font-bold mb-4 text-gray-800">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity">
+          <Dialog.Panel className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-auto">
+            <div className="flex justify-between items-center border-b pb-4">
+              <Dialog.Title className="text-xl font-bold text-gray-800 flex items-center">
+                <ShoppingCart size={20} className="text-orange-500 mr-2" />
                 Your Cart
               </Dialog.Title>
-              <button onClick={() => setIsCartOpen(false)}>
-                <X
-                  size={24}
-                  className="text-black rounded-lg font-bold border-2 border-red-500 hover:text-red-500"
-                />
+              <button
+                onClick={() => setIsCartOpen(false)}
+                className="p-1.5 rounded-full hover:bg-gray-100 transition-all"
+                aria-label="Close cart"
+              >
+                <X size={20} className="text-gray-500" />
               </button>
             </div>
+
+            {/* Success message with animation */}
+            {clearMessage && (
+              <div className="my-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-center font-medium animate-fadeIn">
+                <div className="flex items-center justify-center">
+                  <CheckCircle size={18} className="mr-2" />
+                  {clearMessage}
+                </div>
+              </div>
+            )}
+
+            {/* Cart items */}
             {orderItems.length ? (
-              <div className="mt-4 max-h-[300px] md:max-h-[500px] overflow-y-auto">
+              <div className="mt-4 space-y-3">
                 {orderItems.map((item) => (
                   <div
                     key={item._id}
-                    className="flex items-center justify-between border-b py-2"
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all border border-gray-100"
                   >
                     <div className="flex items-center gap-3">
-                      <img
-                        src={item.imageUrl}
-                        width={50}
-                        height={50}
-                        alt={item.itemName}
-                        className="rounded-lg"
-                      />
-                      <span className="text-md font-medium">
-                        {item.itemName}
-                      </span>
+                      <div className="flex-shrink-0 w-16 h-16 overflow-hidden rounded-lg bg-white shadow-sm border border-gray-100">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.itemName}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">{item.itemName}</h3>
+                        <p className="text-gray-500 text-sm">{item.category}</p>
+                        <p className="text-orange-600 font-semibold">
+                          ₹{item.price}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-5">
+
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => decreaseQuantity(item)}
-                        className="px-4 py-1 bg-white text-black rounded-lg border border-gray-300 font-bold"
+                        className="p-1.5 rounded-full bg-white border border-gray-300 hover:bg-gray-100 transition-colors"
+                        aria-label="Decrease quantity"
                       >
-                        -
+                        <Minus size={14} className="text-gray-600" />
                       </button>
-                      <span className="text-lg font-bold">{item.quantity}</span>
+                      <span className="w-8 text-center font-bold">
+                        {item.quantity}
+                      </span>
                       <button
                         onClick={() => onOrder(item, 1)}
-                        className="px-4 py-1 bg-white text-black rounded-lg border border-gray-300 font-bold"
+                        className="p-1.5 rounded-full bg-white border border-gray-300 hover:bg-gray-100 transition-colors"
+                        aria-label="Increase quantity"
                       >
-                        +
+                        <Plus size={14} className="text-gray-600" />
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-center">No items in the cart.</p>
+              <div className="flex flex-col items-center justify-center py-12">
+                {!clearMessage && (
+                  <>
+                    <div className="bg-gray-100 p-6 rounded-full mb-4">
+                      <ShoppingCart size={48} className="text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 text-lg font-medium">
+                      Your cart is empty
+                    </p>
+                    <p className="text-gray-400 text-sm mt-2">
+                      Add items to get started
+                    </p>
+                  </>
+                )}
+              </div>
             )}
-            <div className="mt-6 flex justify-between items-center">
-              <p className="text-lg font-bold">
-                Total: ₹{calculateTotalPrice()}
-              </p>
-              <div>
-                {orderItems.length ? (
+
+            {/* Cart summary */}
+            <div className="mt-6 pt-4 border-t">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <p className="text-gray-500 text-sm mb-1">
+                    {orderItems.length > 0
+                      ? `${orderItems.length} item${
+                          orderItems.length > 1 ? "s" : ""
+                        }`
+                      : ""}
+                  </p>
+                  <p className="text-lg font-bold">Total Amount</p>
+                </div>
+                <p className="text-xl font-bold text-orange-600">
+                  ₹{calculateTotalPrice()}
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                {orderItems.length > 0 && (
                   <button
                     onClick={handleClearOrder}
-                    className="px-3 py-1 mr-5 text-white rounded-lg font-bold border border-red-500 bg-red-500 hover:bg-white hover:text-red-500"
+                    className="flex items-center justify-center px-4 py-2.5 rounded-lg font-medium text-red-600 border border-red-200 bg-white hover:bg-red-50 transition-colors"
                   >
-                    Clear Cart
+                    <Trash2 size={16} className="mr-2" />
+                    Clear
                   </button>
-                ) : null}
+                )}
+
+                <button
+                  onClick={() => {
+                    setIsCartOpen(false);
+                    if (orderItems.length > 0) {
+                      handleOrder();
+                    }
+                  }}
+                  disabled={orderItems.length === 0 || orderLoading}
+                  className={`flex-1 py-3 rounded-lg font-semibold text-white flex items-center justify-center ${
+                    orderItems.length === 0 || orderLoading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-green-500 hover:bg-green-600"
+                  } transition-colors`}
+                >
+                  {orderLoading ? (
+                    <>
+                      <span className="animate-spin mr-2">
+                        <Loader size={16} />
+                      </span>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      Checkout
+                      <ArrowRight size={16} className="ml-2" />
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </Dialog.Panel>
