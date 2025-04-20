@@ -13,6 +13,9 @@ import {
   Calendar,
   Info,
   Scissors,
+  CreditCard,
+  ArrowRight,
+  Shield,
 } from "lucide-react";
 import LoadingGif from "../../../assets/LoadingComponentImage.gif";
 
@@ -21,8 +24,9 @@ const Page = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentDone, setPaymentDone] = useState(false);
-  const [couponApplied, setCouponApplied] = useState(false);
+  // const [couponApplied, setCouponApplied] = useState(false);
   const [discount, setDiscount] = useState(0);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -50,68 +54,76 @@ const Page = () => {
     }
   };
 
-  const handleRemoveCoupon = () => {
-    setDiscount(0);
-    setCouponApplied(false);
-    localStorage.removeItem("totalAfterDiscount");
-    toast.success("Coupon removed.");
-  };
+  // const handleRemoveCoupon = () => {
+  //   setDiscount(0);
+  //   setCouponApplied(false);
+  //   localStorage.removeItem("totalAfterDiscount");
+  //   toast.success("Coupon removed.");
+  // };
 
-  const handleApplyCoupon = async () => {
-    const today = new Date().toISOString().split("T")[0];
-    const totalAfterDiscount = order.totalAmount - 100;
+  // const handleApplyCoupon = async () => {
+  //   const today = new Date().toISOString().split("T")[0];
+  //   const totalAfterDiscount = order.totalAmount - 100;
 
-    if (order.totalAmount <= 100) {
-      toast.error("Coupon can only be applied for orders above ₹100.");
-      return;
-    }
+  //   if (order.totalAmount <= 100) {
+  //     toast.error("Coupon can only be applied for orders above ₹100.");
+  //     return;
+  //   }
 
-    if (couponApplied) {
-      toast.error("Coupon already applied.");
-      return;
-    }
+  //   if (couponApplied) {
+  //     toast.error("Coupon already applied.");
+  //     return;
+  //   }
 
-    setDiscount(100);
-    setCouponApplied(true);
-    localStorage.setItem("totalAfterDiscount", totalAfterDiscount.toFixed(2));
+  //   setDiscount(100);
+  //   setCouponApplied(true);
+  //   localStorage.setItem("totalAfterDiscount", totalAfterDiscount.toFixed(2));
 
-    toast.success("Coupon applied! ₹100 discount added.");
-  };
+  //   toast.success("Coupon applied! ₹100 discount added.");
+  // };
 
   const createOrder = async () => {
-    const res = await fetch("/api/createOrder", {
-      method: "POST",
-      body: JSON.stringify({ amount: (order.totalAmount - discount) * 100 }),
-    });
-    const data = await res.json();
+    setIsProcessingPayment(true);
+    try {
+      const res = await fetch("/api/createOrder", {
+        method: "POST",
+        body: JSON.stringify({ amount: (order.totalAmount - discount) * 100 }),
+      });
+      const data = await res.json();
 
-    const paymentData = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      order_id: data.id,
-      handler: async function (response) {
-        // verify payment
-        const res = await fetch("/api/verifyOrder", {
-          method: "POST",
-          body: JSON.stringify({
-            orderId: orderId,
-            razorpayorderId: response.razorpay_order_id,
-            razorpayPaymentId: response.razorpay_payment_id,
-            razorpaySignature: response.razorpay_signature,
-          }),
-        });
-        const data = await res.json();
-        if (data.isOk) {
-          setPaymentDone(true);
-          toast.success("Payment successful");
-          handleHomeNavigation();
-        } else {
-          toast.error("Payment failed");
-        }
-      },
-    };
+      const paymentData = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        order_id: data.id,
+        handler: async function (response) {
+          // verify payment
+          const res = await fetch("/api/verifyOrder", {
+            method: "POST",
+            body: JSON.stringify({
+              orderId: orderId,
+              razorpayorderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            }),
+          });
+          const data = await res.json();
+          if (data.isOk) {
+            setPaymentDone(true);
+            toast.success("Payment successful");
+            handleHomeNavigation();
+          } else {
+            toast.error("Payment failed");
+          }
+        },
+      };
 
-    const payment = new window.Razorpay(paymentData);
-    payment.open();
+      const payment = new window.Razorpay(paymentData);
+      payment.open();
+    } catch (error) {
+      console.error("Payment creation error:", error);
+      toast.error("Failed to initialize payment");
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   if (loading)
@@ -140,9 +152,9 @@ const Page = () => {
       </div>
     );
 
-  const totalAfterDiscount = couponApplied
-    ? order.totalAmount - discount
-    : order.totalAmount;
+  // const totalAfterDiscount = couponApplied
+  //   ? order.totalAmount - discount
+  //   : order.totalAmount;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -221,94 +233,65 @@ const Page = () => {
               ))}
             </div>
 
-            {/* Coupon Section */}
-            <div className="mt-8 bg-orange-50 p-4 rounded-lg border border-orange-100">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                <div className="flex items-center mb-4 sm:mb-0">
-                  <div className="bg-orange-600 p-2 rounded-full text-white mr-3">
-                    <Scissors size={20} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">Special Discount</h3>
-                    <p className="text-sm text-gray-600">
-                      Save ₹100 on your order
-                    </p>
-                  </div>
-                </div>
-                {couponApplied ? (
-                  <button
-                    onClick={handleRemoveCoupon}
-                    className="group relative bg-white text-red-600 border border-red-300 px-6 py-2 rounded-md hover:bg-red-50 hover:border-red-400 transition-all duration-300 w-full sm:w-auto flex items-center justify-center shadow-sm"
-                  >
-                    <span className="mr-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </span>
-                    Remove Coupon
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleApplyCoupon}
-                    className="group relative overflow-hidden bg-gradient-to-r from-purple-600 to-blue-500 text-white px-6 py-2 rounded-md shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto flex items-center justify-center"
-                  >
-                    <span className="absolute right-0 -mt-12 h-32 w-8 top-0 bg-white opacity-10 transform rotate-12 transition-all duration-1000 origin-top-right group-hover:-translate-x-40"></span>
-                    <Tag size={16} className="mr-2" />
-                    <span className="font-medium">Apply Coupon</span>
-                  </button>
-                )}
-              </div>
-
-              {couponApplied && (
-                <div className="mt-3 bg-green-50 text-green-700 p-3 rounded-md flex items-center border border-green-100">
-                  <CheckCircle size={18} className="mr-2" />
-                  <p className="text-sm font-medium">
-                    ₹100 discount applied successfully!
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Summary Section */}
+            {/* Enhanced Payment Summary Section (Without Tax) */}
             <div className="mt-8 border-t border-gray-200 pt-6">
-              <div className="flex flex-col sm:flex-row justify-between items-center">
-                <div className="mb-4 sm:mb-0">
-                  <p className="text-gray-600 text-sm">Total Amount</p>
-                  <div className="flex items-center">
-                    <span className="text-2xl font-bold">
-                      ₹{totalAfterDiscount.toFixed(2)}
+              <div className="rounded-lg bg-gray-50 p-6 shadow-sm border border-gray-100">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Payment Summary
+                </h3>
+
+                <div className="space-y-4 mb-6">
+                  <div className="border-t border-gray-200 pt-4 flex justify-between items-center">
+                    <div>
+                      <p className="text-gray-800 font-medium">Total Amount</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Inclusive of all taxes
+                      </p>
+                    </div>
+                    <span className="text-2xl font-bold text-gray-900">
+                      ₹{order.totalAmount}
                     </span>
-                    {couponApplied && (
-                      <span className="ml-2 line-through text-gray-500">
-                        ₹{order.totalAmount.toFixed(2)}
-                      </span>
-                    )}
                   </div>
                 </div>
 
                 {paymentDone ? (
-                  <div className="bg-green-100 text-green-700 px-6 py-3 rounded-md flex items-center border border-green-200">
-                    <CheckCircle size={24} className="mr-2" />
-                    <p className="font-bold">Payment Completed</p>
+                  <div className="bg-green-50 text-green-700 px-6 py-4 rounded-lg flex items-center border border-green-200">
+                    <CheckCircle className="mr-3 text-green-500" size={24} />
+                    <div>
+                      <p className="font-medium">Payment Successful</p>
+                      <p className="text-sm text-green-600">
+                        Thank you for your purchase!
+                      </p>
+                    </div>
                   </div>
                 ) : (
-                  <button
-                    className="bg-green-600 text-white px-10 py-3 rounded-md text-xl font-semibold hover:bg-green-700 transition duration-200 shadow-md flex items-center justify-center w-full sm:w-auto"
-                    onClick={createOrder}
-                  >
-                    Pay Now
-                  </button>
+                  <div className="space-y-4">
+                    <div className="flex items-center text-sm text-gray-600 mb-2">
+                      <Shield size={16} className="mr-2 text-gray-500" />
+                      <span>
+                        Secure payment processed by our trusted payment partner
+                      </span>
+                    </div>
+
+                    <button
+                      className="bg-green-600 text-white w-full px-6 py-4 rounded-lg font-medium hover:bg-green-700 transition duration-200 shadow-md flex items-center justify-center space-x-2 disabled:opacity-70"
+                      onClick={createOrder}
+                      disabled={isProcessingPayment}
+                    >
+                      {isProcessingPayment ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                          <span>Processing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard size={20} className="mr-2" />
+                          <span>Pay Now</span>
+                          <ArrowRight size={18} className="ml-2" />
+                        </>
+                      )}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

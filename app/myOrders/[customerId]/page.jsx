@@ -4,7 +4,12 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { CheckCircle, AlertTriangle, CheckCheck, } from "lucide-react";
+import {
+  CheckCircle,
+  AlertTriangle,
+  CheckCheck,
+  ArrowLeft,
+} from "lucide-react";
 import QRModal from "@/components/QRmodal";
 import Link from "next/link";
 import LoadingGif from "../../../assets/LoadingComponentImage.gif";
@@ -217,15 +222,6 @@ const OrderCard = ({ order }) => {
                   ₹{order.totalAmount}
                 </p>
               </div>
-
-              {order.paymentStatus === "Paid" && (
-                <div>
-                  <p className="text-gray-500 text-sm">After Discount</p>
-                  <p className="font-bold text-lg text-green-600">
-                    ₹{totalAfterDiscount}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -268,32 +264,30 @@ const OrderCard = ({ order }) => {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 mt-6">
+        <div className="flex flex-wrap justify-end gap-3 mt-6">
           {order.paymentStatus === "Paid" ? (
-            order.status === "Received" ? (
-              <div className="flex items-center gap-2 text-green-600 font-semibold py-2 px-3 rounded-md bg-green-50 border border-green-200">
-                <CheckCheck className="w-5 h-5" />
-                Order Received
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowQRModal(true)}
-                className="py-3 px-6 rounded-md text-base font-semibold bg-green-600 hover:bg-green-700 text-white transition-colors shadow-sm"
-              >
-                Show QR Code
-              </button>
-            )
+            <button
+              onClick={() => setShowQRModal(true)}
+              disabled={order.status === "Received"}
+              className={`py-3 px-6 rounded-md text-base font-semibold transition-colors shadow-sm ${
+                order.status === "Received"
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700 text-white"
+              }`}
+            >
+              Show QR Code
+            </button>
           ) : (
             <>
               <button
                 onClick={handleCheckoutNavigation}
-                className="py-3 px-6 rounded-md text-base font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-sm flex-grow md:flex-grow-0"
+                className="py-3 px-6 rounded-md text-base font-semibold bg-green-700 hover:bg-green-400 text-white transition-colors shadow-sm"
               >
-                Proceed to Checkout
+                Proceed to Pay
               </button>
               <button
                 onClick={() => handleCancelOrder(order._id)}
-                className="py-3 px-6 rounded-md text-base font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors shadow-sm flex-grow md:flex-grow-0"
+                className="py-3 px-6 rounded-md text-base font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors shadow-sm"
               >
                 Cancel Order
               </button>
@@ -311,9 +305,21 @@ const OrderCard = ({ order }) => {
 
 const OrderGroupCard = ({ dateKey, orders }) => {
   const vendorId = localStorage.getItem("vendorId");
+  const { customerId } = useParams();
+  const router = useRouter();
+  const handleHomeNavigation = () => {
+    router.push(`/booking/${customerId}/${vendorId}/breakfast`);
+  };
 
   return (
     <div className="mb-8 border rounded-xl shadow-md p-6 bg-white">
+      <button
+        onClick={handleHomeNavigation}
+        className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium mb-6"
+      >
+        <ArrowLeft size={18} />
+        Back to Home
+      </button>
       <h2 className="text-xl font-bold mb-6 text-gray-800 pb-3 border-b">
         {dateKey}
       </h2>

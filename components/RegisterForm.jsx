@@ -151,6 +151,7 @@ export default function RegisterForm() {
             <option value="">Select Company</option>
             <option value="EKA Mobility">EKA Mobility</option>
             <option value="Liebherr">Liebherr</option>
+            <option value="Zinnia">Zinnia</option>
           </select>
 
           <button className="bg-orange-600 text-white font-bold cursor-pointer px-6 py-2 rounded-md">
