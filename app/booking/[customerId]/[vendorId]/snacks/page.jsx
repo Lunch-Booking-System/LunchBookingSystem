@@ -16,6 +16,10 @@ import {
   Minus,
   ArrowRight,
   Loader,
+  CheckCircle,
+  Search,
+  Filter,
+  Coffee,
 } from "lucide-react";
 
 const getMonthName = (monthIndex) => {
@@ -100,21 +104,20 @@ const SnacksMenu = () => {
   };
 
   const filterAndSearchItems = () => {
-    let items = snackItems;
+    let items = [...snackItems];
 
+    // Filter by Veg / Non Veg
     if (filter !== "All") {
-      items = items.filter((item) => {
-        const normalizedItemCategory = item.category
-          .replace(/[-\s]/g, "")
-          .toLowerCase();
-        const normalizedFilter = filter.replace(/[-\s]/g, "").toLowerCase();
-        return normalizedItemCategory === normalizedFilter;
-      });
+      items = items.filter(
+        (item) =>
+          item.type?.trim().toLowerCase() === filter.trim().toLowerCase()
+      );
     }
 
+    // Search by itemName
     if (searchTerm) {
       items = items.filter((item) =>
-        item.itemName.toLowerCase().includes(searchTerm.toLowerCase())
+        item.itemName?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -249,7 +252,7 @@ const SnacksMenu = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <Image
           src={LoadingGif}
           alt="loader"
@@ -263,8 +266,8 @@ const SnacksMenu = () => {
 
   if (error)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center bg-red-50 p-8 rounded-lg shadow-md">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center bg-red-50 p-8 rounded-lg shadow-lg">
           <p className="text-xl text-red-600 font-semibold mb-2">
             Something went wrong
           </p>
@@ -283,75 +286,140 @@ const SnacksMenu = () => {
     <div className="bg-gray-50 min-h-screen">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 flex items-center mb-4 md:mb-0 self-start">
-            <span className="bg-orange-600 w-2 h-8 rounded mr-3 inline-block"></span>
-            Snacks
-          </h1>
+        {/* Enhanced Header with animated underline */}
+        <div className="relative mb-12">
+          <div className="flex items-center mb-2">
+            <Coffee size={28} className="text-orange-500 mr-3" />
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              Snacks Menu
+            </h1>
+          </div>
+          <div className="h-1 w-24 bg-orange-500 rounded absolute bottom-0 left-0"></div>
+          <p className="text-gray-600 mt-2">
+            Delicious bites for your cravings
+          </p>
         </div>
 
-        {/* Item count (using filteredItems) */}
-        <p className="text-gray-600 mb-6 ml-2">
-          Showing {filteredItems.length} items
-        </p>
+        {/* Enhanced Search and Filter UI */}
+        <div className="bg-white rounded-xl shadow-md p-4 mb-8">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search Input with Icon */}
+            <div className="relative flex-grow">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={18} className="text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search for snacks..."
+                className="pl-10 w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-        {/* Search and Filter Controls */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-          <input
-            type="text"
-            placeholder="Search snacks..."
-            className="border p-2 rounded w-full md:w-1/3 mb-2 md:mb-0"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <select
-            className="border p-2 rounded"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          >
-            <option value="All">All</option>
-            <option value="veg">Veg</option>
-            <option value="nonveg">Non-Veg</option>
-          </select>
+            {/* Filter Dropdown with Icon */}
+            <div className="relative min-w-[180px]">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Filter size={18} className="text-gray-400" />
+              </div>
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="pl-10 w-full p-3 bg-white border border-gray-200 rounded-lg appearance-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+              >
+                <option value="All">All Items</option>
+                <option value="Veg">Vegetarian</option>
+                <option value="Non-Veg">Non-Vegetarian</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Items count badge */}
+            <div className="flex items-center justify-center px-4 py-2 bg-orange-100 text-orange-800 rounded-lg font-medium">
+              <span>{filteredItems.length} items available</span>
+            </div>
+          </div>
         </div>
 
-        {/* Menu Grid using filteredItems */}
+        {/* Enhanced Menu Grid - Adds animation and improved layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredItems.length > 0 ? (
-            filteredItems.map((item) => (
-              <MenuCard
+            filteredItems.map((item, index) => (
+              <div
                 key={item._id}
-                item={item}
-                onOrder={onOrder}
-                onRemove={onRemove}
-                isAdded={orderItems.some(
-                  (orderItem) => orderItem._id === item._id
-                )}
-              />
+                className="transform transition-all duration-300 hover:scale-105"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <MenuCard
+                  item={item}
+                  onOrder={onOrder}
+                  onRemove={onRemove}
+                  isAdded={orderItems.some(
+                    (orderItem) => orderItem._id === item._id
+                  )}
+                />
+              </div>
             ))
           ) : (
-            <div className="col-span-full text-center py-12">
-              <p className="text-xl text-gray-500">No items found</p>
+            <div className="col-span-full flex flex-col items-center justify-center py-16 bg-white rounded-xl shadow-md">
+              <div className="bg-gray-100 p-6 rounded-full mb-4">
+                <svg
+                  className="w-16 h-16 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <p className="text-xl text-gray-500 font-medium">
+                No items found
+              </p>
+              <p className="text-gray-400 mt-2">
+                Try adjusting your search or filter
+              </p>
             </div>
           )}
         </div>
 
-        {/* Empty state when no items at all */}
+        {/* Empty state when no items at all - Enhanced with better illustration */}
         {snackItems.length === 0 && !loading && !error && (
-          <div className="text-center py-16">
-            <p className="text-2xl text-gray-500 mb-4">
+          <div className="text-center py-16 bg-white rounded-xl shadow-md">
+            <div className="flex justify-center mb-6">
+              <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center">
+                <Coffee size={48} className="text-orange-500" />
+              </div>
+            </div>
+            <p className="text-2xl text-gray-700 font-bold mb-4">
               No snack items available
             </p>
-            <p className="text-gray-500">
-              Check back later for our delicious snack menu!
+            <p className="text-gray-500 max-w-md mx-auto">
+              Our kitchen is preparing something delicious. Check back later for
+              our tempting snack menu!
             </p>
           </div>
         )}
 
-        {/* Order Details Bottom Bar */}
+        {/* Enhanced Order Details Bottom Bar */}
         {orderItems.length > 0 && (
-          <div className="fixed bottom-0 left-0 w-full bg-white shadow-xl border-t border-gray-200 z-40">
+          <div className="fixed bottom-0 left-0 w-full bg-white shadow-xl border-t border-gray-200 z-40 transition-all duration-300 ease-in-out">
             <div className="container mx-auto px-4 py-3">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="flex items-center justify-between w-full sm:w-auto gap-3">
@@ -444,7 +512,7 @@ const SnacksMenu = () => {
           </div>
         )}
 
-        {/* Cart Dialog */}
+        {/* Enhanced Cart Dialog */}
         <Dialog
           open={isCartOpen}
           onClose={() => setIsCartOpen(false)}
@@ -468,7 +536,7 @@ const SnacksMenu = () => {
 
               {/* Success message with animation */}
               {clearMessage && (
-                <div className="my-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-center font-medium animate-fadeIn">
+                <div className="my-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-center font-medium animate-pulse">
                   <div className="flex items-center justify-center">
                     <CheckCircle size={18} className="mr-2" />
                     {clearMessage}

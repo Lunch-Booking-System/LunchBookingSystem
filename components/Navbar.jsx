@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import WortheatIMG from "../assets/NoBG.svg";
+import Home from "@/app/onboardingcustomer/login/page";
 
 const Navbar = ({ mealType, setMealType }) => {
   const { customerId, vendorId } = useParams();
@@ -71,18 +72,26 @@ const Navbar = ({ mealType, setMealType }) => {
 
   const handleNavigation = (route) => {
     setIsSidebarOpen(false);
-    if (!vendorId || vendorId === "null") {
-      toast.error("Vendor ID is missing!");
-      return;
-    }
-    if (["breakfast", "snacks", "Lunch", "specials"].includes(route)) {
-      router.push(`/booking/${customerId}/${vendorId}/${route}`);
-      return;
-    }
+
     if (route === "myOrders") {
       router.push(`/${route}/${customerId}`);
       return;
     }
+
+    if (!vendorId || vendorId === "null") {
+      toast.error("Vendor ID is missing!");
+      return;
+    }
+
+    if (
+      ["breakfast", "snacks", "Lunch", "specials", "Lunch/Dinner"].includes(
+        route
+      )
+    ) {
+      router.push(`/booking/${customerId}/${vendorId}/${route}`);
+      return;
+    }
+
     router.push(`/booking/${customerId}/${vendorId}/${route}`);
   };
 
@@ -94,6 +103,10 @@ const Navbar = ({ mealType, setMealType }) => {
     { name: "Specials", route: "specials" },
     { name: "My Orders", route: "myOrders", icon: <ShoppingBag size={20} /> },
   ];
+
+  const handleHomeNavigation = () => {
+    router.push(`/booking/${customerId}/${vendorId}/breakfast`);
+  };
 
   return (
     <nav className="sticky top-0 z-40 bg-white shadow-md mb-5">
@@ -114,14 +127,22 @@ const Navbar = ({ mealType, setMealType }) => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-2">
             {isMyOrdersPage ? (
-              <button
-                key="myOrders"
-                className="flex items-center px-5 py-3 text-base font-medium rounded-md bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-                onClick={() => handleNavigation("myOrders")}
-              >
-                <ShoppingBag size={20} className="mr-2" />
-                My Orders
-              </button>
+              <>
+                <button
+                  onClick={handleHomeNavigation}
+                  className="flex items-center px-5 py-3 text-base font-medium rounded-md bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                >
+                  Back to Home
+                </button>
+                <button
+                  key="myOrders"
+                  className="flex-shrink-0 flex items-center "
+                  onClick={() => handleNavigation("myOrders")}
+                >
+                  <ShoppingBag size={20} className="mr-2" />
+                  My Orders
+                </button>
+              </>
             ) : (
               navItems.map((item) => (
                 <button
