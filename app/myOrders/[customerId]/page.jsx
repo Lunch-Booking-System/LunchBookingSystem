@@ -280,16 +280,16 @@ const OrderCard = ({ order }) => {
           ) : (
             <>
               <button
-                onClick={handleCheckoutNavigation}
-                className="py-3 px-6 rounded-md text-base font-semibold bg-green-700 hover:bg-green-400 text-white transition-colors shadow-sm"
-              >
-                Proceed to Pay
-              </button>
-              <button
                 onClick={() => handleCancelOrder(order._id)}
                 className="py-3 px-6 rounded-md text-base font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors shadow-sm"
               >
                 Cancel Order
+              </button>
+              <button
+                onClick={handleCheckoutNavigation}
+                className="py-3 px-6 rounded-md text-base font-semibold bg-green-700 hover:bg-green-400 text-white transition-colors shadow-sm"
+              >
+                Proceed to Pay
               </button>
             </>
           )}
