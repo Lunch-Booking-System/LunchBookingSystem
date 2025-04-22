@@ -213,7 +213,7 @@ const MenuItems = ({ menuItems, selectedDate }) => {
 
   return (
     <div className="divide-y divide-gray-200">
-      <div className="flex md:flex-row flex-col gap-5 md:ml-[26%]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4 justify-center mx-auto">
         {menuItems.map((item) => (
           <MenuCard
             key={item._id}

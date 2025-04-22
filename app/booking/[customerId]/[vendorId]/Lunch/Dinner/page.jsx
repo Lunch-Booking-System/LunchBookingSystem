@@ -197,7 +197,7 @@ const MealMenu = ({ mealType }) => {
     submitOrder();
   };
 
-  // Ensure mealItems is an array before filtering
+  // Ensure mealItems is an array before filterin#YYYYYg
   const filteredItems = (Array.isArray(mealItems) ? mealItems : []).filter(
     (item) => {
       const matchesSearch = item.itemName

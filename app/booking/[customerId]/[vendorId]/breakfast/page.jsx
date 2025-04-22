@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import Navbar from "@/components/Navbar";
 import MenuCard from "@/components/MenuCard";
@@ -59,6 +59,8 @@ const BreakfastMenu = () => {
   const [orderItems, setOrderItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [clearMessage, setClearMessage] = useState("");
+  const [filterType, setFilterType] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -193,6 +195,23 @@ const BreakfastMenu = () => {
     );
   };
 
+  const displayedItems = useMemo(() => {
+    return breakfastItems.filter((item) => {
+      // Apply filterType
+      if (filterType === "Veg" && item.type !== "Veg") return false;
+      if (filterType === "Non-Veg" && item.type !== "Non-Veg") return false;
+
+      // Apply search query filter
+      if (
+        searchQuery &&
+        !item.itemName.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+        return false;
+
+      return true;
+    });
+  }, [breakfastItems, filterType, searchQuery]); // Recompute when these dependencies change
+
   const handleClearOrder = () => {
     setOrderItems([]);
     toast.dismiss();
@@ -256,23 +275,64 @@ const BreakfastMenu = () => {
     <div className="bg-gray-50 min-h-screen">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 flex items-center mb-4 md:mb-0 self-start">
-            <span className="bg-orange-600 w-2 h-8 rounded mr-3 inline-block"></span>
-            Breakfast
-          </h1>
+        {/* Header and Filters Section */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+          {/* Left Side - Title */}
+          <div className="w-full md:w-auto">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 flex items-center mb-2">
+              <span className="bg-orange-600 w-2 h-8 rounded mr-3 inline-block"></span>
+              Breakfast Menu
+            </h1>
+            <p className="text-gray-600 ml-5">
+              Showing {breakfastItems.length} items
+            </p>
+          </div>
+
+          {/* Right Side - Filters */}
+          <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex gap-2">
+              {["All", "Veg", "Non-Veg"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setFilterType(type)}
+                  className={`px-4 py-2 rounded-full font-medium border transition-colors ${
+                    filterType === type
+                      ? "bg-orange-600 text-white border-orange-600 shadow-md"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-orange-50 hover:border-orange-200"
+                  }`}
+                >
+                  {type === "Veg" && (
+                    <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                  )}
+                  {type === "Non-Veg" && (
+                    <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                  )}
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Item count */}
-        <p className="text-gray-600 mb-6 ml-2">
-          Showing {breakfastItems.length} items
-        </p>
+        {/* Menu Grid with subtle divider */}
+        <div className="relative">
+          <div
+            className="absolute inset-0 flex items-center"
+            aria-hidden="true"
+          >
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <div className="relative flex justify-start">
+            <span className="bg-gray-50 pr-3 text-sm text-gray-500">
+              Featured Items
+            </span>
+          </div>
+        </div>
 
         {/* Menu Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {breakfastItems.length > 0 ? (
-            breakfastItems.map((item) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
+          {displayedItems.length > 0 ? (
+            displayedItems.map((item) => (
               <MenuCard
                 key={item._id}
                 item={item}
@@ -284,8 +344,16 @@ const BreakfastMenu = () => {
               />
             ))
           ) : (
-            <div className="col-span-full text-center py-12">
-              <p className="text-xl text-gray-500">No items found</p>
+            <div className="col-span-full flex flex-col items-center justify-center py-16">
+              <div className="bg-gray-100 p-6 rounded-full mb-4">
+                <SearchX size={48} className="text-gray-400" />
+              </div>
+              <p className="text-xl text-gray-500 font-medium">
+                No items found
+              </p>
+              <p className="text-gray-400 mt-2">
+                Try changing your filter selection
+              </p>
             </div>
           )}
         </div>
@@ -293,7 +361,10 @@ const BreakfastMenu = () => {
         {/* Empty state when no items at all */}
         {breakfastItems.length === 0 && !loading && !error && (
           <div className="text-center py-16">
-            <p className="text-2xl text-gray-500 mb-4">
+            <div className="bg-gray-100 p-8 rounded-full mx-auto w-24 h-24 flex items-center justify-center mb-4">
+              <Coffee size={32} className="text-gray-400" />
+            </div>
+            <p className="text-2xl text-gray-500 mb-4 font-medium">
               No breakfast items available
             </p>
             <p className="text-gray-500">
@@ -308,7 +379,7 @@ const BreakfastMenu = () => {
             <div className="container mx-auto px-4 py-3">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="flex items-center justify-between w-full sm:w-auto gap-3">
-                  <div className="flex items-center bg-gray-100 px-4 py-2 rounded-lg">
+                  <div className="flex items-center bg-blue-50 px-4 py-2 rounded-lg shadow-sm">
                     <span className="text-gray-700 font-medium mr-2">
                       Items:
                     </span>
@@ -319,7 +390,7 @@ const BreakfastMenu = () => {
 
                   <button
                     onClick={() => setIsCartOpen(true)}
-                    className="flex items-center bg-blue-50 text-blue-600 border border-blue-200 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors sm:hidden"
+                    className="flex items-center bg-blue-50 text-blue-600 border border-blue-200 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors sm:hidden shadow-sm"
                   >
                     <ShoppingCart size={18} className="mr-2" />
                     View Cart
@@ -329,7 +400,7 @@ const BreakfastMenu = () => {
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                   <button
                     onClick={() => setIsCartOpen(true)}
-                    className="hidden sm:flex items-center bg-blue-50 text-blue-600 border border-blue-200 px-4 py-3 rounded-lg font-medium hover:bg-blue-100 transition-colors"
+                    className="hidden sm:flex items-center bg-blue-50 text-blue-600 border border-blue-200 px-4 py-3 rounded-lg font-medium hover:bg-blue-100 transition-colors shadow-sm"
                   >
                     <ShoppingCart size={18} className="mr-2" />
                     <span className="mr-2">View Cart</span>
@@ -374,20 +445,7 @@ const BreakfastMenu = () => {
                     ) : (
                       <>
                         <span>Confirm Order</span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 ml-2"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
+                        <CheckCircle size={18} className="ml-2" />
                       </>
                     )}
                   </button>
