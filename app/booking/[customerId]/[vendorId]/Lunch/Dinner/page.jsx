@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import Navbar from "@/components/Navbar";
 import MenuCard from "@/components/MenuCard";
@@ -16,6 +16,7 @@ import {
   Minus,
   Plus,
   Trash2,
+  Search,
 } from "lucide-react";
 
 const MealMenu = ({ mealType }) => {
@@ -24,6 +25,9 @@ const MealMenu = ({ mealType }) => {
 
   const [mealItems, setMealItems] = useState([]);
   const [clearMessage, setClearMessage] = useState("");
+  const [snackItems, setSnackItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [filterType, setFilterType] = useState("All");
   const [orderLoading, setOrderLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -72,10 +76,10 @@ const MealMenu = ({ mealType }) => {
       const response = await fetch("/api/getMenuItems");
       if (!response.ok) throw new Error(`Error: ${response.status}`);
       const data = await response.json();
-      console.log("Fetched data:", data);
-      // Use data.menuItems since your API returns { success: true, menuItems: [...] }
       const items = Array.isArray(data) ? data : data.menuItems;
+
       setMealItems(items);
+      setSnackItems(items); // 🔥 THIS LINE ADDED — sets items for display
     } catch (err) {
       setError(err.message);
       toast.error("Failed to load menu!");
@@ -197,18 +201,22 @@ const MealMenu = ({ mealType }) => {
     submitOrder();
   };
 
-  // Ensure mealItems is an array before filterin#YYYYYg
-  const filteredItems = (Array.isArray(mealItems) ? mealItems : []).filter(
-    (item) => {
-      const matchesSearch = item.itemName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesFilter =
-        foodFilter === "all" ||
-        item.type.toLowerCase() === foodFilter.toLowerCase();
-      return matchesSearch && matchesFilter;
-    }
-  );
+  const displayedItems = useMemo(() => {
+    return snackItems.filter((item) => {
+      // Filter by type
+      if (filterType === "Veg" && item.type !== "Veg") return false;
+      if (filterType === "Non-Veg" && item.type !== "Non-Veg") return false;
+
+      // Filter by search term
+      if (
+        searchTerm &&
+        !item.itemName?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+        return false;
+
+      return true;
+    });
+  }, [snackItems, filterType, searchTerm]);
 
   if (loading)
     return (
@@ -233,35 +241,61 @@ const MealMenu = ({ mealType }) => {
             {mealType} Menu
           </h1>
 
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
+          {/* Search Input with Icon */}
+          <div className="relative flex-grow">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search size={18} className="text-gray-400" />
+            </div>
             <input
               type="text"
-              placeholder="Search meals..."
+              placeholder="Search for snacks..."
+              className="pl-10 w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+              value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             />
-            <select
-              onChange={(e) => setFoodFilter(e.target.value)}
-              className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value="all">All Food Items</option>
-              <option value="veg">Vegetarian Only</option>
-              <option value="non-veg">Non-Vegetarian Only</option>
-            </select>
+          </div>
+
+          {/* Filter Buttons */}
+          <div className="flex gap-2">
+            {["All", "Veg", "Non-Veg"].map((type) => (
+              <button
+                key={type}
+                onClick={() => setFilterType(type)}
+                className={`px-4 py-2 rounded-full font-medium border transition-colors ${
+                  filterType === type
+                    ? "bg-orange-600 text-white border-orange-600 shadow-md"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-orange-50 hover:border-orange-200"
+                }`}
+              >
+                {type === "Veg" && (
+                  <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                )}
+                {type === "Non-Veg" && (
+                  <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                )}
+                {type}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Menu Items */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {filteredItems.map((item) => (
-            <MenuCard
-              key={item._id}
-              item={item}
-              onOrder={onOrder}
-              onRemove={onRemove}
-              isAdded={orderItems.some((order) => order._id === item._id)}
-            />
-          ))}
+          {displayedItems.length > 0 ? (
+            displayedItems.map((item) => (
+              <MenuCard
+                key={item._id}
+                item={item}
+                onOrder={onOrder}
+                onRemove={onRemove}
+                isAdded={orderItems.some(
+                  (orderItem) => orderItem._id === item._id
+                )}
+              />
+            ))
+          ) : (
+            <p className="text-center text-gray-600">No items found.</p>
+          )}
         </div>
       </div>
 
