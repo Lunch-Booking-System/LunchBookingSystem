@@ -168,49 +168,42 @@ const Page = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50 text-gray-800">
       <Navbar />
-      <div className="block justify-center gap-4 mt-7 overflow-x-hidden">
-        <div className="flex justify-center mb-5 md:mb-3">
+      <div className="flex flex-col w-full mx-auto items-center px-2 py-8 space-y-6">
+        {/* Date Picker */}
+        <div className=" flex justify-center">
           <input
             type="date"
             value={selectedDate.date}
             onChange={handleDateChange}
-            className="border rounded-lg p-2 w-72"
+            className="border border-gray-300 rounded-lg px-4 py-2 w-72 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-center space-y-4 my-6">
-          {/* <div
-        className="relative rounded-lg overflow-hidden shadow-lg cursor-pointer"
-        onClick={handleClick}
-      >
-        <Image
-          src={Ad}
-          className="w-[350px] md:w-[450px] h-[180px] md:h-[200px] object-cover"
-          alt="Personal Loan Banner"
-        />
-      </div> */}
-        </div>
-
-        {loading ? (
+        {/* Ad Section (commented) */}
+        {/* <div
+          className="relative rounded-lg overflow-hidden shadow-lg cursor-pointer"
+          onClick={handleClick}
+        >
           <Image
-            src={LoadingGif}
-            className="md:ml-[35%] mt-[7%] md:mt-[5%]"
-            alt="loader"
+            src={Ad}
+            className="w-[350px] md:w-[450px] h-[180px] md:h-[200px] object-cover"
+            alt="Personal Loan Banner"
           />
+        </div> */}
+
+        {/* Conditional Content */}
+        {loading ? (
+          <Image src={LoadingGif} className="w-20 h-20 mt-10" alt="loader" />
         ) : hasOrder ? (
-          <div className="p-4 bg-white rounded-lg md:mx-40">
-            <h2 className="text-2xl font-bold mb-4 flex justify-start">
-              Your Orders
-            </h2>
+          <div className="w-full max-w-8xl p-6 bg-white rounded-xl shadow-md">
+            <h2 className="text-2xl font-bold mb-4 text-left">Your Orders</h2>
             <OrderDetailsUser userOrder={orders} />
           </div>
         ) : (
-          <div className="p-4 bg-white rounded-lg md:mx-16 mb-28">
-            <h2 className="text-2xl font-bold mb-3 flex justify-center">
-              Menu
-            </h2>
+          <div className="w-full max-w-8xl p-6 bg-white rounded-xl shadow-md">
+            <h2 className="text-2xl font-bold mb-4 text-center">Menu</h2>
             <MenuItems menuItems={menuItems} selectedDate={selectedDate} />
           </div>
         )}

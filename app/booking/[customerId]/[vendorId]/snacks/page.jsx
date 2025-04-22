@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import Navbar from "@/components/Navbar";
 import MenuCard from "@/components/MenuCard";
@@ -57,6 +57,8 @@ const SnacksMenu = () => {
   const { customerId } = useParams();
   const [snackItems, setSnackItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
+  const [filterType, setFilterType] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [orderLoading, setOrderLoading] = useState(false);
   const [error, setError] = useState("");
@@ -82,10 +84,6 @@ const SnacksMenu = () => {
     fetchSnacksMenu();
   }, []);
 
-  // Update filteredItems whenever snackItems, searchTerm, or filter changes
-  useEffect(() => {
-    filterAndSearchItems();
-  }, [searchTerm, filter, snackItems]);
 
   const fetchSnacksMenu = async () => {
     try {
@@ -101,27 +99,6 @@ const SnacksMenu = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const filterAndSearchItems = () => {
-    let items = [...snackItems];
-
-    // Filter by Veg / Non Veg
-    if (filter !== "All") {
-      items = items.filter(
-        (item) =>
-          item.type?.trim().toLowerCase() === filter.trim().toLowerCase()
-      );
-    }
-
-    // Search by itemName
-    if (searchTerm) {
-      items = items.filter((item) =>
-        item.itemName?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    setFilteredItems(items);
   };
 
   const onOrder = (item, quantity) => {
@@ -140,6 +117,23 @@ const SnacksMenu = () => {
       }
     });
   };
+
+  const displayedItems = useMemo(() => {
+    return snackItems.filter((item) => {
+      // Filter by type
+      if (filterType === "Veg" && item.type !== "Veg") return false;
+      if (filterType === "Non-Veg" && item.type !== "Non-Veg") return false;
+
+      // Filter by search term
+      if (
+        searchTerm &&
+        !item.itemName?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+        return false;
+
+      return true;
+    });
+  }, [snackItems, filterType, searchTerm]);
 
   const onRemove = (item) => {
     setOrderItems((prev) => {
@@ -317,33 +311,27 @@ const SnacksMenu = () => {
               />
             </div>
 
-            {/* Filter Dropdown with Icon */}
-            <div className="relative min-w-[180px]">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Filter size={18} className="text-gray-400" />
-              </div>
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="pl-10 w-full p-3 bg-white border border-gray-200 rounded-lg appearance-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-              >
-                <option value="All">All Items</option>
-                <option value="Veg">Vegetarian</option>
-                <option value="Non-Veg">Non-Vegetarian</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                <svg
-                  className="w-5 h-5 text-gray-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
+            {/* Filter Buttons */}
+            <div className="flex gap-2">
+              {["All", "Veg", "Non-Veg"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setFilterType(type)}
+                  className={`px-4 py-2 rounded-full font-medium border transition-colors ${
+                    filterType === type
+                      ? "bg-orange-600 text-white border-orange-600 shadow-md"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-orange-50 hover:border-orange-200"
+                  }`}
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
+                  {type === "Veg" && (
+                    <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                  )}
+                  {type === "Non-Veg" && (
+                    <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                  )}
+                  {type}
+                </button>
+              ))}
             </div>
 
             {/* Items count badge */}
@@ -355,22 +343,17 @@ const SnacksMenu = () => {
 
         {/* Enhanced Menu Grid - Adds animation and improved layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredItems.length > 0 ? (
-            filteredItems.map((item, index) => (
-              <div
+          {displayedItems.length > 0 ? (
+            displayedItems.map((item) => (
+              <MenuCard
                 key={item._id}
-                className="transform transition-all duration-300 hover:scale-105"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <MenuCard
-                  item={item}
-                  onOrder={onOrder}
-                  onRemove={onRemove}
-                  isAdded={orderItems.some(
-                    (orderItem) => orderItem._id === item._id
-                  )}
-                />
-              </div>
+                item={item}
+                onOrder={onOrder}
+                onRemove={onRemove}
+                isAdded={orderItems.some(
+                  (orderItem) => orderItem._id === item._id
+                )}
+              />
             ))
           ) : (
             <div className="col-span-full flex flex-col items-center justify-center py-16 bg-white rounded-xl shadow-md">
