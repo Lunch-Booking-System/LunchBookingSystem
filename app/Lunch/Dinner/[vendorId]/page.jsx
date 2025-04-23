@@ -9,14 +9,15 @@ import {
   AlertCircle,
   Check,
   X,
+  Pencil,
 } from "lucide-react";
 
 const LunchManager = () => {
   const { vendorId } = useParams();
   const [lunchItems, setLunchItems] = useState([]);
-  const [menuItems, setMenuItems] = useState([]); // New state for general menu items
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [editItem, setEditItem] = useState(null);
   const [newItem, setNewItem] = useState({
     itemName: "",
     type: "Veg",
@@ -29,7 +30,6 @@ const LunchManager = () => {
     if (vendorId) {
       fetchLunchItems();
     }
-    fetchMenuItems(); // Fetch general menu items
   }, [vendorId]);
 
   const fetchLunchItems = async () => {
@@ -37,7 +37,8 @@ const LunchManager = () => {
     try {
       const res = await fetch(`/api/lunchdinner?vendorId=${vendorId}`);
       const data = await res.json();
-      setLunchItems(data.lunch || []);
+      setLunchItems(data.lunchDinnerItems || []); // ✅ updated this line
+      console.log(data);
     } catch (error) {
       toast.error("Failed to load lunch items");
     } finally {
@@ -45,21 +46,9 @@ const LunchManager = () => {
     }
   };
 
-  const fetchMenuItems = async () => {
-    try {
-      const response = await fetch("/api/getMenuItems");
-      if (!response.ok) throw new Error(`Error: ${response.status}`);
-      const data = await response.json();
-      const items = Array.isArray(data) ? data : data.menuItems;
-      setMenuItems(items);
-    } catch (err) {
-      toast.error("Failed to load menu items");
-    }
-  };
-
   const handleToggleStatus = async (id, isActive) => {
     try {
-      const res = await fetch("/api/lunch", {
+      const res = await fetch("/api/lunchdinner", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ _id: id, isActive: !isActive }),
@@ -76,7 +65,7 @@ const LunchManager = () => {
     }
   };
 
-  const handleAddItem = async (e) => {
+  const handleAddOrEditItem = async (e) => {
     e.preventDefault();
 
     if (!newItem.itemName || !newItem.price) {
@@ -84,21 +73,24 @@ const LunchManager = () => {
       return;
     }
 
-    try {
-      const itemData = {
-        ...newItem,
-        vendor: vendorId,
-        price: Number(newItem.price),
-      };
+    const itemData = {
+      ...newItem,
+      vendor: vendorId,
+      price: Number(newItem.price),
+    };
 
-      const res = await fetch("/api/lunch", {
-        method: "POST",
+    const method = editItem ? "PUT" : "POST";
+
+    try {
+      const res = await fetch("/api/updateLunchDinner", {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(itemData),
       });
+      console.log(res);
 
       if (res.ok) {
-        toast.success("Item added successfully!");
+        toast.success(`Item ${editItem ? "updated" : "added"} successfully!`);
         setNewItem({
           itemName: "",
           type: "Veg",
@@ -106,10 +98,11 @@ const LunchManager = () => {
           imageUrl: "",
           price: "",
         });
+        setEditItem(null);
         setShowForm(false);
         fetchLunchItems();
       } else {
-        toast.error("Error adding item");
+        toast.error("Error saving item");
       }
     } catch (error) {
       toast.error("An error occurred");
@@ -121,7 +114,17 @@ const LunchManager = () => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Manage Lunch Menu</h1>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm(!showForm);
+            setEditItem(null);
+            setNewItem({
+              itemName: "",
+              type: "Veg",
+              description: "",
+              imageUrl: "",
+              price: "",
+            });
+          }}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
         >
           <PlusCircle size={18} />
@@ -132,10 +135,10 @@ const LunchManager = () => {
       {showForm && (
         <div className="bg-white p-6 rounded-lg mb-8 shadow-md border border-gray-200">
           <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">
-            Add New Item
+            {editItem ? "Edit Item" : "Add New Item"}
           </h2>
           <form
-            onSubmit={handleAddItem}
+            onSubmit={handleAddOrEditItem}
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
             <div className="space-y-2">
@@ -158,18 +161,16 @@ const LunchManager = () => {
               <label className="block text-sm font-medium text-gray-700">
                 Price (₹)*
               </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  value={newItem.price}
-                  onChange={(e) =>
-                    setNewItem({ ...newItem, price: e.target.value })
-                  }
-                  className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
+              <input
+                type="number"
+                placeholder="0.00"
+                value={newItem.price}
+                onChange={(e) =>
+                  setNewItem({ ...newItem, price: e.target.value })
+                }
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              />
             </div>
 
             <div className="space-y-2">
@@ -192,20 +193,15 @@ const LunchManager = () => {
               <label className="block text-sm font-medium text-gray-700">
                 Image URL
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Image size={16} className="text-gray-500" />
-                </div>
-                <input
-                  type="url"
-                  placeholder="https://example.com/image.jpg"
-                  value={newItem.imageUrl}
-                  onChange={(e) =>
-                    setNewItem({ ...newItem, imageUrl: e.target.value })
-                  }
-                  className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+              <input
+                type="url"
+                placeholder="https://example.com/image.jpg"
+                value={newItem.imageUrl}
+                onChange={(e) =>
+                  setNewItem({ ...newItem, imageUrl: e.target.value })
+                }
+                className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
             </div>
 
             <div className="space-y-2 md:col-span-2">
@@ -226,7 +222,10 @@ const LunchManager = () => {
             <div className="md:col-span-2 flex justify-end gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  setShowForm(false);
+                  setEditItem(null);
+                }}
                 className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               >
                 Cancel
@@ -236,7 +235,7 @@ const LunchManager = () => {
                 className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-2"
               >
                 <PlusCircle size={18} />
-                Add Item
+                {editItem ? "Update Item" : "Add Item"}
               </button>
             </div>
           </form>
@@ -329,20 +328,33 @@ const LunchManager = () => {
                   </span>
                 </div>
 
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                <p className="text-gray-600 text-sm mb-2 line-clamp-2">
                   {item.description || "No description available"}
                 </p>
 
-                <button
-                  onClick={() => handleToggleStatus(item._id, item.isActive)}
-                  className={`w-full py-2 rounded-md text-sm font-medium transition-colors ${
-                    item.isActive
-                      ? "bg-green-50 text-green-700 hover:bg-green-100"
-                      : "bg-red-50 text-red-700 hover:bg-red-100"
-                  }`}
-                >
-                  {item.isActive ? " Available" : " Unavailable"}
-                </button>
+                <div className="flex justify-between gap-2">
+                  <button
+                    onClick={() => {
+                      setNewItem(item);
+                      setEditItem(item._id);
+                      setShowForm(true);
+                    }}
+                    className="w-full py-2 rounded-md text-sm text-blue-600 hover:underline flex items-center justify-center gap-1"
+                  >
+                    <Pencil size={14} /> Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleToggleStatus(item._id, item.isActive)}
+                    className={`w-full py-2 rounded-md text-sm font-medium transition-colors ${
+                      item.isActive
+                        ? "bg-green-50 text-green-700 hover:bg-green-100"
+                        : "bg-red-50 text-red-700 hover:bg-red-100"
+                    }`}
+                  >
+                    {item.isActive ? "Available" : "Unavailable"}
+                  </button>
+                </div>
               </div>
             </div>
           ))}
