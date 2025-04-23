@@ -37,7 +37,7 @@ const LunchManager = () => {
     try {
       const res = await fetch(`/api/lunchdinner?vendorId=${vendorId}`);
       const data = await res.json();
-      setLunchItems(data.lunch || []);
+      setLunchItems(data.lunchDinnerItems || []); // ✅ updated this line
       console.log(data);
     } catch (error) {
       toast.error("Failed to load lunch items");
@@ -82,7 +82,7 @@ const LunchManager = () => {
     const method = editItem ? "PUT" : "POST";
 
     try {
-      const res = await fetch("/api/lunchdinner", {
+      const res = await fetch("/api/updateLunchDinner", {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(itemData),

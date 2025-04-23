@@ -1,5 +1,5 @@
 import { connectMongoDB } from "@/lib/mongodb";
-import Menu from "@/models/menu"; 
+import Menu from "@/models/menu";
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
@@ -13,7 +13,7 @@ export async function GET(req) {
 
   const lunchDinnerItems = await Menu.find({
     vendor: vendorId,
-    category: "Menu", 
+    category: "Menu",
   });
 
   return Response.json({ lunchDinnerItems });
