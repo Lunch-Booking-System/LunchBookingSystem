@@ -14,7 +14,7 @@ export async function GET(req) {
   // Fetch breakfast items for the given vendor
   const breakfasts = await Menu.find({
     vendor: vendorId,
-    category: "Breakfast", // Changed category to 'Breakfast'
+    category: "BreakFast", // Changed category to 'Breakfast'
   });
 
   return Response.json({ breakfasts });

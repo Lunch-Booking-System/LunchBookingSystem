@@ -1,5 +1,5 @@
 import { connectMongoDB } from "@/lib/mongodb";
-import Menu from "@/models/snacks"; // Ensure this is pointing to the correct schema file
+import Menu from "@/models/menu"; 
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
@@ -13,54 +13,39 @@ export async function GET(req) {
 
   const lunchDinnerItems = await Menu.find({
     vendor: vendorId,
+    category: "Menu", 
   });
 
   return Response.json({ lunchDinnerItems });
 }
 
 export async function POST(req) {
-  const {
-    vendor,
-    itemName,
-    type,
-    description,
-    imageUrl,
-    price,
-    menuDate, // expects { date, dayName, month, year }
-  } = await req.json();
+  const { vendor, itemName, type, description, imageUrl, price } =
+    await req.json();
 
-  if (
-    !vendor ||
-    !itemName ||
-    !type ||
-    !description ||
-    !imageUrl ||
-    !price ||
-    !menuDate?.date ||
-    !menuDate?.dayName ||
-    !menuDate?.month ||
-    !menuDate?.year
-  ) {
+  if (!vendor || !itemName || !type || !description || !imageUrl || !price) {
     return Response.json({ message: "Missing fields" }, { status: 400 });
   }
 
   await connectMongoDB();
 
-  const newItem = await Menu.create({
+  // Create a new LunchDinner item
+  const newLunchDinner = await Menu.create({
     vendor,
     itemName,
     type,
     description,
     imageUrl,
     price,
-    menuDate,
+    category: "Menu",
+    isActive: true,
   });
 
-  return Response.json({ lunchDinnerItem: newItem }, { status: 201 });
+  return Response.json({ lunchDinner: newLunchDinner }, { status: 201 });
 }
 
 export async function PATCH(req) {
-  const { _id, ...updateData } = await req.json();
+  const { _id, isActive } = await req.json();
 
   if (!_id) {
     return Response.json({ message: "Item ID missing" }, { status: 400 });
@@ -68,11 +53,12 @@ export async function PATCH(req) {
 
   await connectMongoDB();
 
-  const updatedItem = await Menu.findByIdAndUpdate(
+  // Update the status of the LunchDinner item
+  const updatedLunchDinner = await Menu.findByIdAndUpdate(
     _id,
-    updateData,
+    { isActive },
     { new: true }
   );
 
-  return Response.json({ lunchDinnerItem: updatedItem });
+  return Response.json({ lunchDinner: updatedLunchDinner });
 }
