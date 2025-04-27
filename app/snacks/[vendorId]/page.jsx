@@ -1,23 +1,36 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import {
   PlusCircle,
+  ChevronDown,
   DollarSign,
-  Image,
+  Image as ImageIcon,
   AlertCircle,
-  Check,
-  X,
   Pencil,
+  Search,
+  X,
+  Check,
+  Filter,
+  Coffee,
+  Leaf,
+  Drumstick,
 } from "lucide-react";
+import VendorNavbar from "@/components/VendorNavbar";
 
 const SnackManager = () => {
   const { vendorId } = useParams();
   const [snacks, setSnacks] = useState([]);
+  const [filteredSnacks, setFilteredSnacks] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [editingSnack, setEditingSnack] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("All");
+  const [sortOption, setSortOption] = useState("name-asc");
+  const [formSubmitting, setFormSubmitting] = useState(false);
 
   const [newSnack, setNewSnack] = useState({
     itemName: "",
@@ -30,6 +43,10 @@ const SnackManager = () => {
   useEffect(() => {
     if (vendorId) fetchSnacks();
   }, [vendorId]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [snacks, searchTerm, filterType, sortOption]);
 
   const fetchSnacks = async () => {
     setIsLoading(true);
@@ -44,22 +61,64 @@ const SnackManager = () => {
     }
   };
 
-  const handleToggleStatus = async (id, isActive) => {
+  const applyFilters = () => {
+    let results = [...snacks];
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      results = results.filter(
+        (snack) =>
+          snack.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          snack.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply type filter
+    if (filterType !== "All") {
+      results = results.filter((snack) => snack.type === filterType);
+    }
+
+    // Apply sorting
+    switch (sortOption) {
+      case "name-asc":
+        results.sort((a, b) => a.itemName.localeCompare(b.itemName));
+        break;
+      case "name-desc":
+        results.sort((a, b) => b.itemName.localeCompare(a.itemName));
+        break;
+      case "price-asc":
+        results.sort((a, b) => a.price - b.price);
+        break;
+      case "price-desc":
+        results.sort((a, b) => b.price - a.price);
+        break;
+      default:
+        break;
+    }
+
+    setFilteredSnacks(results);
+  };
+
+  const handleToggleStatus = async (id, newStatus) => {
     try {
       const res = await fetch("/api/snacks", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id: id, isActive: !isActive }),
+        body: JSON.stringify({ _id: id, isActive: newStatus }),
       });
 
-      if (res.ok) {
-        toast.success(
-          `Snack ${isActive ? "disabled" : "enabled"} successfully`
-        );
-        fetchSnacks();
-      } else {
+      if (!res.ok) {
         toast.error("Failed to update snack status");
+        return;
       }
+
+      setSnacks((prev) =>
+        prev.map((snack) =>
+          snack._id === id ? { ...snack, isActive: newStatus } : snack
+        )
+      );
+
+      toast.success(`Snack ${newStatus ? "available" : "unavailable"} now`);
     } catch (error) {
       toast.error("An error occurred");
     }
@@ -67,9 +126,11 @@ const SnackManager = () => {
 
   const handleAddOrUpdateSnack = async (e) => {
     e.preventDefault();
+    setFormSubmitting(true);
 
     if (!newSnack.itemName || !newSnack.price) {
       toast.error("Item name and price are required");
+      setFormSubmitting(false);
       return;
     }
 
@@ -90,7 +151,12 @@ const SnackManager = () => {
       });
 
       if (res.ok) {
-        toast.success(editingSnack ? "Snack updated" : "Snack added");
+        toast.success(
+          editingSnack
+            ? "Snack updated successfully"
+            : "Snack added successfully"
+        );
+
         setNewSnack({
           itemName: "",
           type: "Veg",
@@ -106,274 +172,298 @@ const SnackManager = () => {
       }
     } catch (error) {
       toast.error("An error occurred");
+    } finally {
+      setFormSubmitting(false);
     }
   };
 
   const handleEdit = (snack) => {
     setEditingSnack(snack);
-    setNewSnack(snack);
+    setNewSnack({
+      _id: snack._id,
+      itemName: snack.itemName,
+      type: snack.type,
+      description: snack.description,
+      imageUrl: snack.imageUrl,
+      price: snack.price,
+    });
     setShowForm(true);
+
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const resetForm = () => {
+    setNewSnack({
+      itemName: "",
+      type: "Veg",
+      description: "",
+      imageUrl: "",
+      price: "",
+    });
+    setEditingSnack(null);
+    setShowForm(false);
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">
-          Manage All-Day Snacks
-        </h1>
-        <button
-          onClick={() => {
-            setShowForm(!showForm);
-            setEditingSnack(null);
-            setNewSnack({
-              itemName: "",
-              type: "Veg",
-              description: "",
-              imageUrl: "",
-              price: "",
-            });
-          }}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-        >
-          <PlusCircle size={18} />
-          {showForm ? "Cancel" : "Add New Snack"}
-        </button>
-      </div>
-
-      {showForm && (
-        <div className="bg-white p-6 rounded-lg mb-8 shadow-md border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">
-            {editingSnack ? "Edit Snack" : "Add New Snack"}
-          </h2>
-          <form
-            onSubmit={handleAddOrUpdateSnack}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            <input type="hidden" value={newSnack._id || ""} />
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Item Name*
-              </label>
-              <input
-                type="text"
-                value={newSnack.itemName}
-                onChange={(e) =>
-                  setNewSnack({ ...newSnack, itemName: e.target.value })
-                }
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+    <>
+      <VendorNavbar />
+      <div className="max-w-6xl mx-auto p-4 md:p-6 pt-20 md:pt-24">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-8 shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center">
+                <Coffee className="mr-2 text-blue-600" size={24} />
+                Manage All-Day Snacks
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Add and manage snacks for your customers
+              </p>
             </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Price (₹)*
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <DollarSign size={16} className="text-gray-500" />
-                </div>
+            <button
+              onClick={() => (showForm ? resetForm() : setShowForm(true))}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
+            >
+              {showForm ? <X size={18} /> : <PlusCircle size={18} />}
+              {showForm ? "Cancel Form" : "Add New Snack"}
+            </button>
+          </div>
+        </div>
+
+        {/* Form */}
+        {showForm && (
+          <div className="bg-white p-6 rounded-xl mb-8 shadow-md border border-gray-200 transition-all">
+            <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 flex items-center">
+              {editingSnack ? (
+                <>
+                  <Pencil size={18} className="mr-2 text-blue-600" />
+                  Edit Snack
+                </>
+              ) : (
+                <>
+                  <PlusCircle size={18} className="mr-2 text-green-600" />
+                  Add New Snack
+                </>
+              )}
+            </h2>
+            <form
+              onSubmit={handleAddOrUpdateSnack}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+              <input type="hidden" value={newSnack._id || ""} />
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Item Name*
+                </label>
                 <input
-                  type="number"
-                  value={newSnack.price}
+                  type="text"
+                  value={newSnack.itemName}
                   onChange={(e) =>
-                    setNewSnack({ ...newSnack, price: e.target.value })
+                    setNewSnack({ ...newSnack, itemName: e.target.value })
                   }
-                  className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                  placeholder="Enter item name"
+                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Type
-              </label>
-              <select
-                value={newSnack.type}
-                onChange={(e) =>
-                  setNewSnack({ ...newSnack, type: e.target.value })
-                }
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="Veg">Vegetarian</option>
-                <option value="Non-Veg">Non-Vegetarian</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Image URL
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Image size={16} className="text-gray-500" />
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Price (₹)*
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <DollarSign size={16} className="text-gray-500" />
+                  </div>
+                  <input
+                    type="number"
+                    value={newSnack.price}
+                    onChange={(e) =>
+                      setNewSnack({ ...newSnack, price: e.target.value })
+                    }
+                    placeholder="0.00"
+                    required
+                    className="w-full p-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Snack Type
+                </label>
+                <select
+                  value={newSnack.type}
+                  onChange={(e) =>
+                    setNewSnack({ ...newSnack, type: e.target.value })
+                  }
+                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                >
+                  <option value="Veg">Veg</option>
+                  <option value="Non-Veg">Non-Veg</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Description
+                </label>
+                <textarea
+                  value={newSnack.description}
+                  onChange={(e) =>
+                    setNewSnack({ ...newSnack, description: e.target.value })
+                  }
+                  placeholder="Enter description"
+                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Image URL
+                </label>
                 <input
-                  type="url"
+                  type="text"
                   value={newSnack.imageUrl}
                   onChange={(e) =>
                     setNewSnack({ ...newSnack, imageUrl: e.target.value })
                   }
-                  className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter image URL"
+                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
               </div>
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <textarea
-                value={newSnack.description}
-                onChange={(e) =>
-                  setNewSnack({ ...newSnack, description: e.target.value })
-                }
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                rows={3}
-              />
-            </div>
-            <div className="md:col-span-2 flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  setEditingSnack(null);
-                  setNewSnack({
-                    itemName: "",
-                    type: "Veg",
-                    description: "",
-                    imageUrl: "",
-                    price: "",
-                  });
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-2"
-              >
-                <PlusCircle size={18} />
-                {editingSnack ? "Update Snack" : "Add Snack"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
-      {isLoading && (
-        <div className="flex justify-center items-center py-16">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        </div>
-      )}
+              <div className="flex justify-end gap-4 mt-4">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={formSubmitting}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all"
+                >
+                  {formSubmitting ? "Saving..." : "Save Snack"}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
-      {!isLoading && snacks.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-          <AlertCircle size={48} className="text-gray-400 mb-4" />
-          <h3 className="text-xl font-medium text-gray-700">
-            No snacks available
-          </h3>
-          <p className="text-gray-500 mb-4">
-            Add your first snack to get started
-          </p>
-          {!showForm && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center gap-2"
-            >
-              <PlusCircle size={18} />
-              Add New Snack
-            </button>
-          )}
-        </div>
-      )}
-
-      {!isLoading && snacks.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {snacks.map((snack) => (
-            <div
-              key={snack._id}
-              className="border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow bg-white"
-            >
-              <div className="relative h-48">
-                <img
-                  src={snack.imageUrl || "/api/placeholder/400/320"}
-                  alt={snack.itemName}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "/api/placeholder/400/320";
-                  }}
+        {/* Snacks list */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Search size={18} />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search snacks..."
+                  className="p-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 />
-                <div className="absolute top-2 right-2">
-                  <span
-                    className={`px-2 py-1 rounded-md text-xs font-medium ${
-                      snack.type === "Veg"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {snack.type}
-                  </span>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                  <h3 className="text-lg font-bold text-white">
+              </div>
+              <button
+                onClick={() => setSearchTerm("")}
+                className="text-sm text-gray-500"
+              >
+                Clear Search
+              </button>
+            </div>
+
+            {/* Filter & Sort Controls */}
+            <div className="flex gap-4 items-center">
+              <div className="flex items-center gap-2">
+                <Filter size={16} />
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="p-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                >
+                  <option value="All">All</option>
+                  <option value="Veg">Veg</option>
+                  <option value="Non-Veg">Non-Veg</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <ChevronDown size={16} />
+                <select
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                  className="p-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                >
+                  <option value="name-asc">Name (A-Z)</option>
+                  <option value="name-desc">Name (Z-A)</option>
+                  <option value="price-asc">Price (Low-High)</option>
+                  <option value="price-desc">Price (High-Low)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+            </div>
+          ) : filteredSnacks.length === 0 ? (
+            <p className="text-center text-gray-500">No snacks found</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredSnacks.map((snack) => (
+                <div
+                  key={snack._id}
+                  className="bg-white p-4 rounded-lg shadow-md border border-gray-200"
+                >
+                  <div className="relative">
+                    <img
+                      src={snack.imageUrl || "https://via.placeholder.com/150"}
+                      alt={snack.itemName}
+                      className="w-full h-48 object-cover rounded-md"
+                      onError={(e) =>
+                        (e.target.src = "https://via.placeholder.com/150")
+                      }
+                    />
+                    <div className="absolute top-2 right-2">
+                      <button
+                        onClick={() =>
+                          handleToggleStatus(snack._id, !snack.isActive)
+                        }
+                        className={`px-2 py-1 text-white rounded-lg ${
+                          snack.isActive ? "bg-green-500" : "bg-red-500"
+                        }`}
+                      >
+                        {snack.isActive ? "Available" : "Unavailable"}
+                      </button>
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-800 mt-4">
                     {snack.itemName}
                   </h3>
+                  <p className="text-gray-600">{snack.description}</p>
+                  <div className="flex justify-between items-center mt-4">
+                    <span className="text-xl font-bold text-gray-800">
+                      ₹{snack.price}
+                    </span>
+                    <button
+                      onClick={() => handleEdit(snack)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      Edit
+                    </button>
+                  </div>
                 </div>
-              </div>
-
-              <div className="p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-lg font-bold text-gray-900">
-                    ₹{snack.price}
-                  </span>
-                  <span
-                    className={`flex items-center gap-1 text-sm font-medium ${
-                      snack.isActive ? "text-red-700" : "text-green-700"
-                    }`}
-                  >
-                    {snack.isActive ? (
-                      <>
-                        <X size={16} className="text-red-600" />
-                        Unavailable
-                      </>
-                    ) : (
-                      <>
-                        <Check size={16} className="text-green-600" />
-                        Available
-                      </>
-                    )}
-                  </span>
-                </div>
-
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  {snack.description || "No description available"}
-                </p>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(snack)}
-                    className="w-full py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100"
-                  >
-                    <Pencil size={16} className="inline mr-1" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() =>
-                      handleToggleStatus(snack._id, snack.isActive)
-                    }
-                    className={`w-full py-2 rounded-md text-sm font-medium ${
-                      snack.isActive
-                        ? "bg-green-50 text-green-700 hover:bg-green-100"
-                        : "bg-red-50 text-red-700 hover:bg-red-100"
-                    }`}
-                  >
-                    {snack.isActive ? "Available" : "Unavailable"}
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 };
 

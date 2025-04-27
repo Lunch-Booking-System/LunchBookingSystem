@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { connectMongoDB } from "@/lib/mongodb";
-import Vendor from "@/models/vendor";
+import User from "@/models/user"; // Make sure you're importing User model
 
 export async function POST(req) {
   try {
-    console.log("Received request for vendor registration.");
+    console.log("Received request for user registration.");
 
     const body = await req.json().catch((err) => {
       console.error("Error parsing request JSON:", err);
@@ -13,42 +13,64 @@ export async function POST(req) {
     });
 
     if (!body) {
-      return NextResponse.json({ message: "Invalid request body" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Invalid request body" },
+        { status: 400 }
+      );
     }
 
-    const { name, phone, email, password, shopName, address } = body;
+    const {
+      firstName,
+      lastName,
+      empId,
+      email,
+      phoneNo,
+      address,
+      company,
+      password,
+    } = body;
 
     await connectMongoDB();
 
-    // Check if the vendor already exists (to prevent duplicate emails)
-    const existingVendor = await Vendor.findOne({ email });
-    if (existingVendor) {
-      return NextResponse.json({ message: "Vendor with this email already exists." }, { status: 400 });
+    // Check if the user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return NextResponse.json(
+        { message: "User with this email already exists." },
+        { status: 400 }
+      );
     }
 
-    // Hash the password before storing it
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new vendor
-    const newVendor = new Vendor({
-      name,
-      phone,
+    // Create new user
+    const newUser = new User({
+      firstName,
+      lastName,
+      empId,
       email,
-      shopName,
+      phoneNo,
       address,
+      company,
       password: hashedPassword,
     });
 
-    await newVendor.save();
+    await newUser.save();
 
-    console.log("Vendor registered successfully:", newVendor);
+    console.log("User registered successfully:", newUser);
 
-    return NextResponse.json({ message: "Vendor registered successfully." }, { status: 201 });
-
-  } catch (error) {
-    console.error("Error while registering vendor:", error);
     return NextResponse.json(
-      { message: "An error occurred while registering the vendor.", error: error.message },
+      { message: "User registered successfully." },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error while registering user:", error);
+    return NextResponse.json(
+      {
+        message: "An error occurred while registering the user.",
+        error: error.message,
+      },
       { status: 500 }
     );
   }
