@@ -17,7 +17,6 @@ import {
   ArrowRight,
   CheckCircle,
   Loader,
-  Search,
 } from "lucide-react";
 
 const getMonthName = (monthIndex) => {
@@ -315,18 +314,19 @@ const BreakfastMenu = () => {
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative flex-grow">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search size={18} className="text-gray-400" />
+        {/* Menu Grid with subtle divider */}
+        <div className="relative">
+          <div
+            className="absolute inset-0 flex items-center"
+            aria-hidden="true"
+          >
+            <div className="w-full border-t border-gray-200"></div>
           </div>
-          <input
-            type="text"
-            placeholder="Search for Breakfast"
-            className="pl-10 w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <div className="relative flex justify-start">
+            <span className="bg-gray-50 pr-3 text-sm text-gray-500">
+              Featured Items
+            </span>
+          </div>
         </div>
 
         {/* Menu Grid */}

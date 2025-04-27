@@ -36,7 +36,7 @@ export async function POST(req) {
     imageUrl,
     price,
     category: "AllDaySnacks",
-    isActive: true, 
+    isActive: true, // default true
   });
 
   return Response.json({ snack: newSnack }, { status: 201 });
@@ -48,7 +48,6 @@ export async function PATCH(req) {
   if (!_id) {
     return Response.json({ message: "Snack ID missing" }, { status: 400 });
   }
-  console.log(_id);
 
   await connectMongoDB();
 

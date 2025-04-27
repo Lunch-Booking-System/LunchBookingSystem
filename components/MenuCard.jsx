@@ -35,7 +35,9 @@ const MenuCard = ({ item, onOrder, onRemove, dayName, isAdded }) => {
             alt={item.itemName || "Menu item"}
           />
         )}
-    
+        <div className="absolute top-3 right-3 bg-orange-500 px-2 py-1 rounded-full shadow text-white">
+          <span className="text-xs font-bold">{discount}% OFF</span>
+        </div>
         {item.type && (
           <div className="absolute bottom-3 left-3">
             <span

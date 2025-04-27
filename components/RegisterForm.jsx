@@ -9,7 +9,6 @@ export default function RegisterForm() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [phoneNo, setPhoneNo] = useState(""); // Added phoneNo state
   const [address, setAddress] = useState("");
   const [company, setCompany] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -27,8 +26,7 @@ export default function RegisterForm() {
       !password ||
       !lastName ||
       !address ||
-      !company ||
-      !phoneNo // Check if phoneNo is filled
+      !company
     ) {
       setError("All fields are necessary.");
       return;
@@ -66,7 +64,6 @@ export default function RegisterForm() {
           lastName,
           email,
           password,
-          phoneNo, // Sending phoneNo to backend
           address,
           company,
         }),
@@ -120,14 +117,6 @@ export default function RegisterForm() {
             onChange={(e) => setEmail(e.target.value)}
             type="email"
             placeholder="Email"
-            className="w-72 md:w-full"
-          />
-
-          {/* Phone number input */}
-          <input
-            onChange={(e) => setPhoneNo(e.target.value)}
-            type="text"
-            placeholder="Phone Number"
             className="w-72 md:w-full"
           />
 
