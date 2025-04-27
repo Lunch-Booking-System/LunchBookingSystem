@@ -21,7 +21,7 @@ const userSchema = new Schema(
     },
     phoneNo: {
       type: String,
-      required: true, 
+      required: true, // make it required if you want
     },
     address: {
       type: String,

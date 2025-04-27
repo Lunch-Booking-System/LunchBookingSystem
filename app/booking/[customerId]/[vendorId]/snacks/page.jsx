@@ -84,6 +84,7 @@ const SnacksMenu = () => {
     fetchSnacksMenu();
   }, []);
 
+
   const fetchSnacksMenu = async () => {
     try {
       const response = await fetch("/api/getSnackItems");
@@ -193,7 +194,6 @@ const SnacksMenu = () => {
         },
         body: JSON.stringify(orderData),
       });
-      
 
       if (!response.ok) {
         throw new Error(`Failed to submit order: ${response.status}`);
@@ -207,31 +207,6 @@ const SnacksMenu = () => {
       toast.error(err.message);
     } finally {
       setOrderLoading(false);
-    }
-  };
-
-  const fetchSnack = async () => {
-    if (!snackId) {
-      setError("Snack ID is required");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    try {
-      const response = await fetch(`/api/getAvailability?id=${snackId}`);
-      const data = await response.json();
-
-      if (response.status === 200) {
-        setSnack(data); // Set snack data if found
-      } else {
-        setError(data.message || "Failed to fetch snack");
-      }
-    } catch (err) {
-      setError("An error occurred while fetching the snack");
-      console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -305,17 +280,24 @@ const SnacksMenu = () => {
     <div className="bg-gray-50 min-h-screen">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="w-full md:w-auto">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 flex items-center mb-2">
-            <span className="bg-orange-600 w-2 h-8 rounded mr-3 inline-block"></span>
-            Snacks Menu
-          </h1>
-          <p className="text-gray-600 ml-5">
-            Showing {snackItems.length} items
+        {/* Enhanced Header with animated underline */}
+        <div className="relative mb-12">
+          <div className="flex items-center mb-2">
+            <Coffee size={28} className="text-orange-500 mr-3" />
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              Snacks Menu
+            </h1>
+          </div>
+          <div className="h-1 w-24 bg-orange-500 rounded absolute bottom-0 left-0"></div>
+          <p className="text-gray-600 mt-2">
+            Delicious bites for your cravings
           </p>
         </div>
+
+        {/* Enhanced Search and Filter UI */}
         <div className="bg-white rounded-xl shadow-md p-4 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
+            {/* Search Input with Icon */}
             <div className="relative flex-grow">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search size={18} className="text-gray-400" />
@@ -351,8 +333,15 @@ const SnacksMenu = () => {
                 </button>
               ))}
             </div>
+
+            {/* Items count badge */}
+            <div className="flex items-center justify-center px-4 py-2 bg-orange-100 text-orange-800 rounded-lg font-medium">
+              <span>{filteredItems.length} items available</span>
+            </div>
           </div>
         </div>
+
+        {/* Enhanced Menu Grid - Adds animation and improved layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {displayedItems.length > 0 ? (
             displayedItems.map((item) => (
@@ -410,6 +399,8 @@ const SnacksMenu = () => {
             </p>
           </div>
         )}
+
+        {/* Enhanced Order Details Bottom Bar */}
         {orderItems.length > 0 && (
           <div className="fixed bottom-0 left-0 w-full bg-white shadow-xl border-t border-gray-200 z-40 transition-all duration-300 ease-in-out">
             <div className="container mx-auto px-4 py-3">
@@ -423,6 +414,7 @@ const SnacksMenu = () => {
                       {orderItems.reduce((acc, item) => acc + item.quantity, 0)}
                     </span>
                   </div>
+
                   <button
                     onClick={() => setIsCartOpen(true)}
                     className="flex items-center bg-blue-50 text-blue-600 border border-blue-200 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors sm:hidden"
@@ -524,6 +516,8 @@ const SnacksMenu = () => {
                   <X size={20} className="text-gray-500" />
                 </button>
               </div>
+
+              {/* Success message with animation */}
               {clearMessage && (
                 <div className="my-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-center font-medium animate-pulse">
                   <div className="flex items-center justify-center">
@@ -532,6 +526,8 @@ const SnacksMenu = () => {
                   </div>
                 </div>
               )}
+
+              {/* Cart items */}
               {orderItems.length ? (
                 <div className="mt-4 space-y-3">
                   {orderItems.map((item) => (
@@ -597,6 +593,8 @@ const SnacksMenu = () => {
                   )}
                 </div>
               )}
+
+              {/* Cart summary */}
               <div className="mt-6 pt-4 border-t">
                 <div className="flex justify-between items-center mb-4">
                   <div>

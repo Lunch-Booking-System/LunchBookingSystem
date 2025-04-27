@@ -84,7 +84,7 @@ const VendorNavbar = () => {
             <Image
               src={WortheatIMG}
               alt="Wortheat Logo"
-              className="w-[130px] h-auto"
+              className="w-[120px] h-auto"
             />
           </div>
 
