@@ -19,6 +19,10 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    phoneNo: {
+      type: String,
+      required: true, // make it required if you want
+    },
     address: {
       type: String,
       required: true,

@@ -11,6 +11,7 @@ import {
   X,
   Pencil,
 } from "lucide-react";
+import VendorNavbar from "@/components/VendorNavbar";
 
 const LunchManager = () => {
   const { vendorId } = useParams();
@@ -110,7 +111,8 @@ const LunchManager = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6 pt-24">
+      <VendorNavbar />
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Manage Lunch Menu</h1>
         <button

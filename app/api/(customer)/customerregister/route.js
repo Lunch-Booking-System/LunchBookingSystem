@@ -1,61 +1,56 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import User from "@/models/user";
 import { connectMongoDB } from "@/lib/mongodb";
+import User from "@/models/user"; // Make sure you're importing User model
 
 export async function POST(req) {
   try {
-    const { firstName, lastName, email, password,company,address } = await req.json();
+    console.log("Received request for user registration.");
 
-   
-    if (!firstName || !lastName || !email || !password|| !company|| !address) {
-      return NextResponse.json(
-        { message: "All fields are required." },
-        { status: 400 }
-      );
+    const body = await req.json().catch((err) => {
+      console.error("Error parsing request JSON:", err);
+      return null;
+    });
+
+    if (!body) {
+      return NextResponse.json({ message: "Invalid request body" }, { status: 400 });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { message: "Invalid email format." },
-        { status: 400 }
-      );
-    }
+    const { firstName, lastName, empId, email, phoneNo, address, company, password } = body;
 
-    if (password.length < 8) {
-      return NextResponse.json(
-        { message: "Password must be at least 8 characters long." },
-        { status: 400 }
-      );
-    }
-
-  
     await connectMongoDB();
 
-
+    // Check if the user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return NextResponse.json(
-        { message: "Email is already in use." },
-        { status: 409 } // 409 Conflict
-      );
+      return NextResponse.json({ message: "User with this email already exists." }, { status: 400 });
     }
 
-    
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    
-    await User.create({ firstName, lastName, email, password: hashedPassword,address,company });
+    // Create new user
+    const newUser = new User({
+      firstName,
+      lastName,
+      empId,
+      email,
+      phoneNo,
+      address,
+      company,
+      password: hashedPassword,
+    });
 
-    return NextResponse.json(
-      { message: "User registered successfully." },
-      { status: 201 }
-    );
+    await newUser.save();
+
+    console.log("User registered successfully:", newUser);
+
+    return NextResponse.json({ message: "User registered successfully." }, { status: 201 });
+
   } catch (error) {
-    console.error("Registration Error:", error);
+    console.error("Error while registering user:", error);
     return NextResponse.json(
-      { message: "An error occurred while registering the user." },
+      { message: "An error occurred while registering the user.", error: error.message },
       { status: 500 }
     );
   }
