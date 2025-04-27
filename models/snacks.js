@@ -23,6 +23,14 @@ const snacksSchema = new Schema(
       type: String,
       required: true,
     },
+    available: {
+      type: Boolean,
+      default: true,
+    },
+    isActive: {
+      type: Boolean,
+      default: true, // You can set a default value if you'd like
+    },
     price: {
       type: Number,
       required: true,
