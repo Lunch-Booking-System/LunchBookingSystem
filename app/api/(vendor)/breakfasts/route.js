@@ -1,5 +1,5 @@
 import { connectMongoDB } from "@/lib/mongodb";
-import Menu from "@/models/snacks"; // Assuming a 'breakfast' model exists, similar to 'snacks'
+import Menu from "@/models/snacks"; // Assuming same model for breakfast items
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
@@ -11,17 +11,16 @@ export async function GET(req) {
 
   await connectMongoDB();
 
-  // Fetch breakfast items for the given vendor
   const breakfasts = await Menu.find({
     vendor: vendorId,
-    category: "BreakFast", // Changed category to 'Breakfast'
+    category: "BreakFast", 
   });
 
   return Response.json({ breakfasts });
 }
 
 export async function POST(req) {
-  const { vendor, itemName, type, description, imageUrl, price } =
+  const { vendor, itemName, type, description, imageUrl, price, available } =
     await req.json();
 
   if (!vendor || !itemName || !type || !description || !imageUrl || !price) {
@@ -30,7 +29,6 @@ export async function POST(req) {
 
   await connectMongoDB();
 
-  // Create a new breakfast item
   const newBreakfast = await Menu.create({
     vendor,
     itemName,
@@ -38,28 +36,48 @@ export async function POST(req) {
     description,
     imageUrl,
     price,
-    category: "Breakfast", // Category set to 'Breakfast'
-    isActive: true, // Default status is true (active)
+    category: "BreakFast", 
+    available: true, 
   });
 
   return Response.json({ breakfast: newBreakfast }, { status: 201 });
 }
 
 export async function PATCH(req) {
-  const { _id, isActive } = await req.json();
+  try {
+    const { _id, available } = await req.json();
+    console.log("PATCH request received:", { _id, available });
 
-  if (!_id) {
-    return Response.json({ message: "Breakfast ID missing" }, { status: 400 });
+    if (!_id) {
+      return Response.json(
+        { message: "Breakfast ID missing" },
+        { status: 400 }
+      );
+    }
+
+    await connectMongoDB();
+
+    const updatedBreakfast = await Menu.findByIdAndUpdate(
+      _id,
+      { available },
+      { new: true }
+    );
+
+    if (!updatedBreakfast) {
+      return Response.json(
+        { message: "Breakfast item not found" },
+        { status: 404 }
+      );
+    }
+
+    console.log("Updated Breakfast:", updatedBreakfast);
+
+    return Response.json({ breakfast: updatedBreakfast }, { status: 200 });
+  } catch (error) {
+    console.error("Error updating breakfast:", error);
+    return Response.json(
+      { message: "Error updating breakfast" },
+      { status: 500 }
+    );
   }
-
-  await connectMongoDB();
-
-  // Update the status of the breakfast item
-  const updatedBreakfast = await Menu.findByIdAndUpdate(
-    _id,
-    { isActive },
-    { new: true }
-  );
-
-  return Response.json({ breakfast: updatedBreakfast });
 }
