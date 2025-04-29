@@ -27,6 +27,10 @@ const snacksSchema = new Schema(
       type: Number,
       required: true,
     },
+    available: {
+      type: Boolean,
+      default: true,
+    },
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",

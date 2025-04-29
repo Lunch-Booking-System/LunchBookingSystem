@@ -17,6 +17,8 @@ import {
   ArrowRight,
   CheckCircle,
   Loader,
+  Search,
+  Coffee,
 } from "lucide-react";
 
 const getMonthName = (monthIndex) => {
@@ -51,7 +53,7 @@ const getDayName = (dayIndex) => {
 };
 
 const BreakfastMenu = () => {
-  const { customerId } = useParams();
+  const { customerId, vendorId } = useParams();
   const [breakfastItems, setBreakfastItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [orderLoading, setOrderLoading] = useState(false);
@@ -63,21 +65,6 @@ const BreakfastMenu = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    const customer = JSON.parse(localStorage.getItem("customer"));
-    const localCustomerId = customer?.customerId;
-
-    if (!customer || !localCustomerId || localCustomerId !== customerId) {
-      toast.dismiss();
-      toast.error("Unauthorized access. Redirecting to login page...");
-      router.push(`/vendorDashboard/${customerId}`);
-    }
-  }, [customerId, router]);
-
-  useEffect(() => {
-    fetchBreakfastMenu();
-  }, []);
-
   const fetchBreakfastMenu = async () => {
     try {
       const response = await fetch("/api/getBreakfastItems");
@@ -85,9 +72,9 @@ const BreakfastMenu = () => {
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }
-
       const data = await response.json();
-      setBreakfastItems(data);
+      const availableItems = data.filter((item) => item.available !== false);
+      setBreakfastItems(availableItems);
     } catch (err) {
       setError(err.message);
       toast.error("Failed to load breakfast menu!");
@@ -95,6 +82,18 @@ const BreakfastMenu = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!vendorId) return;
+
+    fetchBreakfastMenu();
+
+    const interval = setInterval(() => {
+      fetchBreakfastMenu();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [vendorId]);
 
   const onOrder = (item, quantity) => {
     setOrderItems((prevItems) => {
@@ -346,7 +345,7 @@ const BreakfastMenu = () => {
           ) : (
             <div className="col-span-full flex flex-col items-center justify-center py-16">
               <div className="bg-gray-100 p-6 rounded-full mb-4">
-                <SearchX size={48} className="text-gray-400" />
+                <Search size={48} className="text-gray-400" />
               </div>
               <p className="text-xl text-gray-500 font-medium">
                 No items found

@@ -104,8 +104,10 @@ const SnackManager = () => {
       const res = await fetch("/api/snacks", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id: id, isActive: newStatus }),
+        body: JSON.stringify({ _id: id, available: newStatus }),
       });
+
+      const data = await res.json(); 
 
       if (!res.ok) {
         toast.error("Failed to update snack status");
@@ -113,13 +115,16 @@ const SnackManager = () => {
       }
 
       setSnacks((prev) =>
-        prev.map((snack) =>
-          snack._id === id ? { ...snack, isActive: newStatus } : snack
+        prev.map(
+          (snack) => (snack._id === id ? data.snack : snack) // ⬅️ update full snack from server
         )
       );
 
-      toast.success(`Snack ${newStatus ? "available" : "unavailable"} now`);
+      toast.success(
+        `Snack ${data.snack.available ? "available" : "unavailable"} now`
+      );
     } catch (error) {
+      console.error(error);
       toast.error("An error occurred");
     }
   };
@@ -432,13 +437,13 @@ const SnackManager = () => {
                     <div className="absolute top-2 right-2">
                       <button
                         onClick={() =>
-                          handleToggleStatus(snack._id, !snack.isActive)
+                          handleToggleStatus(snack._id, !snack.available)
                         }
                         className={`px-2 py-1 text-white rounded-lg ${
-                          snack.isActive ? "bg-green-500" : "bg-red-500"
+                          snack.available ? "bg-green-500" : "bg-red-500"
                         }`}
                       >
-                        {snack.isActive ? "Available" : "Unavailable"}
+                        {snack.available ? "Available" : "Unavailable"}
                       </button>
                     </div>
                   </div>

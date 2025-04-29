@@ -79,7 +79,7 @@ const MealMenu = ({ mealType }) => {
       const items = Array.isArray(data) ? data : data.menuItems;
 
       setMealItems(items);
-      setSnackItems(items); // 🔥 THIS LINE ADDED — sets items for display
+      setSnackItems(items); 
     } catch (err) {
       setError(err.message);
       toast.error("Failed to load menu!");

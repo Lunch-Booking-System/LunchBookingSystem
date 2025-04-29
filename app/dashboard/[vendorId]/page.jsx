@@ -233,339 +233,285 @@ export default function VendorDashboard() {
           </div>
         </div>
 
-        {/* Summary Section */}
-        {!loading && Object.keys(summary).length > 0 && (
-          <div className="bg-gray-200 rounded-xl shadow-lg overflow-hidden mb-8 border border-gray-300">
-            <div className="px-6 py-5 border-b border-gray-300 bg-gradient-to-r from-purple-50 to-gray-200">
-              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                <span className="bg-yellow-600 w-1.5 h-6 rounded mr-2 inline-block"></span>
-                Order Summary
-              </h2>
-              <p className="mt-1 text-sm text-gray-500 ml-3.5">
-                Total items ordered for {selectedDate}
-              </p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-300">
-                <thead className="bg-gray-200">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
-                    >
-                      Item Name
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
-                    >
-                      Quantity
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
-                    >
-                      Item Name
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
-                    >
-                      Quantity
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-300">
-                  {(() => {
-                    const entries = Object.entries(summary);
-                    const rows = [];
-                    for (let i = 0; i < entries.length; i += 2) {
-                      const first = entries[i];
-                      const second = entries[i + 1];
-                      rows.push(
-                        <tr
-                          key={i}
-                          className={i % 4 === 0 ? "bg-gray-100" : "bg-white"}
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {first[0]}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
-                              {first[1]} items
-                            </span>
-                          </td>
-                          {second ? (
-                            <>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {second[0]}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
-                                  {second[1]} items
-                                </span>
-                              </td>
-                            </>
-                          ) : (
-                            <>
-                              <td className="px-6 py-4 whitespace-nowrap"></td>
-                              <td className="px-6 py-4 whitespace-nowrap"></td>
-                            </>
-                          )}
-                        </tr>
-                      );
-                    }
-                    return rows;
-                  })()}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Orders Table Section */}
-        <div className="bg-gray-200 rounded-xl shadow-lg overflow-hidden border border-gray-300">
-          <div className="px-6 py-5 border-b border-gray-300 bg-gradient-to-r from-indigo-50 to-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-              <span className="bg-yellow-600 w-1.5 h-6 rounded mr-2 inline-block"></span>
-              Order Details
-            </h2>
-            <p className="mt-1 text-sm text-gray-500 ml-3.5">
-              {filteredOrders.length} orders found for {selectedDate}
-            </p>
-          </div>
-
-          {loading ? (
-            <div className="flex justify-center items-center h-64 bg-white">
-              <SyncLoader color="#4F46E5" />
-            </div>
-          ) : filteredOrders.length > 0 ? (
-            <div>
-              {/* Desktop view */}
-              <div className="hidden md:block">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-300">
-                    <thead className="bg-gray-200">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
-                        >
-                          Order ID
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
-                        >
-                          Time
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
-                        >
-                          Customer
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
-                        >
-                          Company
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
-                        >
-                          Items & Quantity
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
-                        >
-                          Total
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
-                        >
-                          Status
-                        </th>
+        {/* Main Content Area with Side-by-Side Sections */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Order Summary Section - Left Side */}
+          {!loading && Object.keys(summary).length > 0 && (
+            <div className="lg:w-1/2 bg-gray-200 rounded-xl shadow-lg overflow-hidden border border-gray-300">
+              <div className="px-6 py-5 border-b border-gray-300 bg-gradient-to-r from-purple-50 to-gray-200">
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                  <span className="bg-yellow-600 w-1.5 h-6 rounded mr-2 inline-block"></span>
+                  Order Summary
+                </h2>
+                <p className="mt-1 text-sm text-gray-500 ml-3.5">
+                  Total items ordered for {selectedDate}
+                </p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-300">
+                  <thead className="bg-gray-200">
+                    <tr>
+                      <th
+                        scope="col"
+                        className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
+                      >
+                        Item Name
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
+                      >
+                        Quantity
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-300">
+                    {Object.entries(summary).map(([itemName, quantity], index) => (
+                      <tr
+                        key={index}
+                        className={index % 2 === 0 ? "bg-gray-100" : "bg-white"}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {itemName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+                            {quantity} items
+                          </span>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="bg-gray-100 divide-y divide-gray-300">
-                      {filteredOrders.map((order, index) => (
-                        <tr
-                          key={order._id}
-                          className={
-                            index % 2 === 0
-                              ? "bg-gray-100 hover:bg-gray-200"
-                              : "bg-white hover:bg-gray-200"
-                          }
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 max-w-xs truncate border-l-2 border-transparent hover:border-indigo-500">
-                            {order._id}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {order.orderDate?.time || "N/A"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 uppercase">
-                            {order.customer.firstName} {order.customer.lastName}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {order.customer.company}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
-                            <div className="space-y-2">
-                              {order.items.map((item, idx) => (
-                                <div
-                                  key={idx}
-                                  className="flex justify-between max-w-xs p-1 rounded bg-white shadow-sm"
-                                >
-                                  <span className="truncate pr-4">
-                                    {item.itemId?.itemName}
-                                  </span>
-                                  <span className="font-medium text-gray-900 bg-gray-200 px-2 rounded-full">
-                                    ×{item.quantity}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            <span className="bg-white px-3 py-1 rounded-lg shadow-sm">
-                              ₹{order.totalAmount}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full shadow-sm ${
-                                order.status === "completed"
-                                  ? "bg-green-100 text-green-800 border border-green-200"
-                                  : order.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
-                                  : "bg-blue-100 text-blue-800 border border-blue-200"
-                              }`}
-                            >
-                              {order.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-
-              {/* Mobile view */}
-              <div className="block md:hidden">
-                <div className="grid grid-cols-1 gap-4 p-4 bg-gray-100">
-                  {filteredOrders.map((order) => (
-                    <div
-                      key={order._id}
-                      className="bg-gray-200 rounded-lg border border-gray-300 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      <div className="px-4 py-3 bg-gradient-to-r from-indigo-50 to-gray-200 border-b border-gray-300 flex justify-between items-center uppercase">
-                        <div className="font-medium truncate max-w-xs uppercase">
-                          {order.customer.firstName} {order.customer.lastName}
-                        </div>
-                        <span
-                          className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full shadow-sm ${
-                            order.status === "completed"
-                              ? "bg-green-100 text-green-800 border border-green-200"
-                              : order.status === "pending"
-                              ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
-                              : "bg-blue-100 text-blue-800 border border-blue-200"
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </div>
-                      <div className="px-4 py-3 bg-gray-100">
-                        <table className="min-w-full">
-                          <tbody>
-                            <tr>
-                              <td className="py-2 text-sm font-medium text-gray-500 w-1/3">
-                                Company:
-                              </td>
-                              <td className="py-2 text-sm text-gray-900 font-medium">
-                                {order.customer.company}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="py-2 text-sm font-medium text-gray-500 w-1/3">
-                                Time:
-                              </td>
-                              <td className="py-2 text-sm text-gray-900 font-medium">
-                                {order.orderDate?.time || "N/A"}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="py-2 text-sm font-medium text-gray-500 align-top w-1/3">
-                                Items:
-                              </td>
-                              <td className="py-2 text-sm text-gray-900">
-                                <div className="space-y-2">
-                                  {order.items.map((item, idx) => (
-                                    <div
-                                      key={idx}
-                                      className="flex justify-between bg-white p-2 rounded-lg shadow-sm"
-                                    >
-                                      <span className="truncate pr-2">
-                                        {item.itemId?.itemName}
-                                      </span>
-                                      <span className="font-medium bg-gray-200 px-2 rounded-full shadow-sm">
-                                        ×{item.quantity}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="py-2 text-sm font-medium text-gray-500 w-1/3">
-                                Total:
-                              </td>
-                              <td className="py-2 text-sm font-medium text-indigo-700 bg-white px-3 rounded-lg inline-block shadow-sm">
-                                ₹{order.totalAmount}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="py-2 text-sm font-medium text-gray-500 w-1/3">
-                                Order ID:
-                              </td>
-                              <td className="py-2 text-sm text-gray-500 truncate">
-                                {order._id}
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="py-12 text-center bg-gray-100">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-12 w-12 mx-auto text-gray-400 mb-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p className="text-gray-500 text-lg mb-1">No orders found</p>
-              <p className="text-gray-400 text-sm">
-                Try selecting a different date or filter
-              </p>
             </div>
           )}
+
+          {/* Orders Table Section - Right Side */}
+          <div className="lg:w-1/2 bg-gray-200 rounded-xl shadow-lg overflow-hidden border border-gray-300">
+            <div className="px-6 py-5 border-b border-gray-300 bg-gradient-to-r from-indigo-50 to-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                <span className="bg-yellow-600 w-1.5 h-6 rounded mr-2 inline-block"></span>
+                Order Details
+              </h2>
+              <p className="mt-1 text-sm text-gray-500 ml-3.5">
+                {filteredOrders.length} orders found for {selectedDate}
+              </p>
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center items-center h-64 bg-white">
+                <SyncLoader color="#4F46E5" />
+              </div>
+            ) : filteredOrders.length > 0 ? (
+              <div>
+                {/* Desktop view */}
+                <div className="hidden md:block">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-300">
+                      <thead className="bg-gray-200">
+                        <tr>
+                          <th
+                            scope="col"
+                            className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
+                          >
+                            Customer
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
+                          >
+                            Items & Qty
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
+                          >
+                            Total
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
+                          >
+                            Status
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-gray-100 divide-y divide-gray-300">
+                        {filteredOrders.map((order, index) => (
+                          <tr
+                            key={order._id}
+                            className={
+                              index % 2 === 0
+                                ? "bg-gray-100 hover:bg-gray-200"
+                                : "bg-white hover:bg-gray-200"
+                            }
+                          >
+                            <td className="px-6 py-4">
+                              <div className="text-sm font-medium text-gray-900 uppercase">
+                                {order.customer.firstName} {order.customer.lastName}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {order.customer.company}
+                              </div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                {order.orderDate?.time || "N/A"}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500">
+                              <div className="space-y-1">
+                                {order.items.map((item, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex justify-between max-w-xs p-1 rounded bg-white shadow-sm"
+                                  >
+                                    <span className="truncate pr-4">
+                                      {item.itemId?.itemName}
+                                    </span>
+                                    <span className="font-medium text-gray-900 bg-gray-200 px-2 rounded-full">
+                                      ×{item.quantity}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              <span className="bg-white px-3 py-1 rounded-lg shadow-sm">
+                                ₹{order.totalAmount}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full shadow-sm ${
+                                  order.status === "completed"
+                                    ? "bg-green-100 text-green-800 border border-green-200"
+                                    : order.status === "pending"
+                                    ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                                    : "bg-blue-100 text-blue-800 border border-blue-200"
+                                }`}
+                              >
+                                {order.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Mobile view */}
+                <div className="block md:hidden">
+                  <div className="grid grid-cols-1 gap-4 p-4 bg-gray-100">
+                    {filteredOrders.map((order) => (
+                      <div
+                        key={order._id}
+                        className="bg-gray-200 rounded-lg border border-gray-300 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="px-4 py-3 bg-gradient-to-r from-indigo-50 to-gray-200 border-b border-gray-300 flex justify-between items-center uppercase">
+                          <div className="font-medium truncate max-w-xs uppercase">
+                            {order.customer.firstName} {order.customer.lastName}
+                          </div>
+                          <span
+                            className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full shadow-sm ${
+                              order.status === "completed"
+                                ? "bg-green-100 text-green-800 border border-green-200"
+                                : order.status === "pending"
+                                ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                                : "bg-blue-100 text-blue-800 border border-blue-200"
+                            }`}
+                          >
+                            {order.status}
+                          </span>
+                        </div>
+                        <div className="px-4 py-3 bg-gray-100">
+                          <table className="min-w-full">
+                            <tbody>
+                              <tr>
+                                <td className="py-2 text-sm font-medium text-gray-500 w-1/3">
+                                  Company:
+                                </td>
+                                <td className="py-2 text-sm text-gray-900 font-medium">
+                                  {order.customer.company}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td className="py-2 text-sm font-medium text-gray-500 w-1/3">
+                                  Time:
+                                </td>
+                                <td className="py-2 text-sm text-gray-900 font-medium">
+                                  {order.orderDate?.time || "N/A"}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td className="py-2 text-sm font-medium text-gray-500 align-top w-1/3">
+                                  Items:
+                                </td>
+                                <td className="py-2 text-sm text-gray-900">
+                                  <div className="space-y-2">
+                                    {order.items.map((item, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="flex justify-between bg-white p-2 rounded-lg shadow-sm"
+                                      >
+                                        <span className="truncate pr-2">
+                                          {item.itemId?.itemName}
+                                        </span>
+                                        <span className="font-medium bg-gray-200 px-2 rounded-full shadow-sm">
+                                          ×{item.quantity}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td className="py-2 text-sm font-medium text-gray-500 w-1/3">
+                                  Total:
+                                </td>
+                                <td className="py-2 text-sm font-medium text-indigo-700 bg-white px-3 rounded-lg inline-block shadow-sm">
+                                  ₹{order.totalAmount}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td className="py-2 text-sm font-medium text-gray-500 w-1/3">
+                                  Order ID:
+                                </td>
+                                <td className="py-2 text-sm text-gray-500 truncate">
+                                  {order._id}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="py-12 text-center bg-gray-100">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-12 w-12 mx-auto text-gray-400 mb-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-gray-500 text-lg mb-1">No orders found</p>
+                <p className="text-gray-400 text-sm">
+                  Try selecting a different date or filter
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

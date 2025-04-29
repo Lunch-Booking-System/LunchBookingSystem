@@ -38,7 +38,7 @@ const LunchManager = () => {
     try {
       const res = await fetch(`/api/lunchdinner?vendorId=${vendorId}`);
       const data = await res.json();
-      setLunchItems(data.lunchDinnerItems || []); // ✅ updated this line
+      setLunchItems(data.lunchDinnerItems || []); 
       console.log(data);
     } catch (error) {
       toast.error("Failed to load lunch items");

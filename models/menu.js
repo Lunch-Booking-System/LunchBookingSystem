@@ -47,7 +47,9 @@ const menuSchema = new Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true,
+     collection: 'menus'
+   }
 );
 
 const Menu = models.Menu || mongoose.model("Menu", menuSchema);

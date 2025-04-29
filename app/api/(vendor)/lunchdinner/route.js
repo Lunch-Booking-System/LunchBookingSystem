@@ -1,22 +1,30 @@
 import { connectMongoDB } from "@/lib/mongodb";
 import Menu from "@/models/menu";
+import { NextResponse } from "next/server";
 
 export async function GET(req) {
-  const { searchParams } = new URL(req.url);
+  const { searchParams } = req.nextUrl;
   const vendorId = searchParams.get("vendorId");
 
   if (!vendorId) {
-    return Response.json({ message: "Vendor ID missing" }, { status: 400 });
+    return NextResponse.json({ message: "Vendor ID missing" }, { status: 400 });
   }
 
-  await connectMongoDB();
+  try {
+    await connectMongoDB();
 
-  const lunchDinnerItems = await Menu.find({
-    vendor: vendorId,
-    category: "Menu",
-  });
+    const lunchDinnerItems = await Menu.find({
+      vendor: vendorId,
+      category: "Menu",
+    });
 
-  return Response.json({ lunchDinnerItems });
+    console.log(lunchDinnerItems);
+
+    return NextResponse.json({ lunchDinnerItems });
+  } catch (error) {
+    console.error("Error fetching menu items:", error);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
 }
 
 export async function POST(req) {

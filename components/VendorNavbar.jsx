@@ -11,6 +11,7 @@ import {
   UtensilsCrossed,
   Croissant,
   BookOpen,
+  ShoppingBag,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -26,6 +27,7 @@ const VendorNavbar = () => {
     else if (path.includes("/breakfast")) setActiveTab("breakfast");
     else if (path.includes("/Lunch/Dinner")) setActiveTab("lunch-dinner");
     else if (path.includes("/menu")) setActiveTab("menu");
+    else if (path.includes("/orders")) setActiveTab("orders");
   }, []);
 
   const checkSession = () => {
@@ -74,6 +76,7 @@ const VendorNavbar = () => {
       icon: <UtensilsCrossed size={18} />,
     },
     { name: "Menu", tab: "menu", path: "menu", icon: <BookOpen size={18} /> },
+    { name: "Orders", tab: "orders", path: "orders", icon: <ShoppingBag size={18} /> },
   ];
 
   return (
