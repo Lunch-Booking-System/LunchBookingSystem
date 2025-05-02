@@ -1,24 +1,34 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import {
   PlusCircle,
+  ChevronDown,
   DollarSign,
-  Image,
-  AlertCircle,
-  Check,
-  X,
+  Image as ImageIcon,
   Pencil,
+  Search,
+  X,
+  Check,
+  Filter,
+  Drumstick,
 } from "lucide-react";
 import VendorNavbar from "@/components/VendorNavbar";
 
 const LunchManager = () => {
   const { vendorId } = useParams();
-  const [lunchItems, setLunchItems] = useState([]);
+  const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [editItem, setEditItem] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("All");
+  const [sortOption, setSortOption] = useState("name-asc");
+  const [formSubmitting, setFormSubmitting] = useState(false);
+
   const [newItem, setNewItem] = useState({
     itemName: "",
     type: "Veg",
@@ -28,18 +38,19 @@ const LunchManager = () => {
   });
 
   useEffect(() => {
-    if (vendorId) {
-      fetchLunchItems();
-    }
+    if (vendorId) fetchItems();
   }, [vendorId]);
 
-  const fetchLunchItems = async () => {
+  useEffect(() => {
+    applyFilters();
+  }, [items, searchTerm, filterType, sortOption]);
+
+  const fetchItems = async () => {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/lunchdinner?vendorId=${vendorId}`);
       const data = await res.json();
-      setLunchItems(data.lunchDinnerItems || []); 
-      console.log(data);
+      setItems(data.data || []);
     } catch (error) {
       toast.error("Failed to load lunch items");
     } finally {
@@ -47,30 +58,72 @@ const LunchManager = () => {
     }
   };
 
-  const handleToggleStatus = async (id, isActive) => {
+  const applyFilters = () => {
+    let results = [...items];
+
+    if (searchTerm.trim()) {
+      results = results.filter(
+        (item) =>
+          item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (filterType !== "All") {
+      results = results.filter((item) => item.type === filterType);
+    }
+
+    switch (sortOption) {
+      case "name-asc":
+        results.sort((a, b) => a.itemName.localeCompare(b.itemName));
+        break;
+      case "name-desc":
+        results.sort((a, b) => b.itemName.localeCompare(a.itemName));
+        break;
+      case "price-asc":
+        results.sort((a, b) => a.price - b.price);
+        break;
+      case "price-desc":
+        results.sort((a, b) => b.price - a.price);
+        break;
+    }
+
+    setFilteredItems(results);
+  };
+
+  const handleToggleStatus = async (id, newStatus) => {
     try {
       const res = await fetch("/api/lunchdinner", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id: id, isActive: !isActive }),
+        body: JSON.stringify({ _id: id, available: newStatus }),
       });
 
-      if (res.ok) {
-        toast.success(`Item ${isActive ? "disabled" : "enabled"} successfully`);
-        fetchLunchItems();
-      } else {
-        toast.error("Failed to update item status");
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error("Failed to update status");
+        return;
       }
+
+      setItems((prev) =>
+        prev.map((item) => (item._id === id ? data.lunch : item))
+      );
+
+      toast.success(
+        `Item ${data.lunch.available ? "available" : "unavailable"} now`
+      );
     } catch (error) {
       toast.error("An error occurred");
     }
   };
 
-  const handleAddOrEditItem = async (e) => {
+  const handleAddOrUpdate = async (e) => {
     e.preventDefault();
+    setFormSubmitting(true);
 
     if (!newItem.itemName || !newItem.price) {
-      toast.error("Item name and price are required");
+      toast.error("Name and price required");
+      setFormSubmitting(false);
       return;
     }
 
@@ -80,18 +133,18 @@ const LunchManager = () => {
       price: Number(newItem.price),
     };
 
-    const method = editItem ? "PUT" : "POST";
-
     try {
-      const res = await fetch("/api/updateLunchDinner", {
+      const url = editingItem ? "/api/updateLunch" : "/api/lunch";
+      const method = editingItem ? "PUT" : "POST";
+
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(itemData),
       });
-      console.log(res);
 
       if (res.ok) {
-        toast.success(`Item ${editItem ? "updated" : "added"} successfully!`);
+        toast.success(editingItem ? "Item updated" : "Item added");
         setNewItem({
           itemName: "",
           type: "Veg",
@@ -99,270 +152,265 @@ const LunchManager = () => {
           imageUrl: "",
           price: "",
         });
-        setEditItem(null);
+        setEditingItem(null);
         setShowForm(false);
-        fetchLunchItems();
+        fetchItems();
       } else {
-        toast.error("Error saving item");
+        toast.error("Failed to save item");
       }
     } catch (error) {
       toast.error("An error occurred");
+    } finally {
+      setFormSubmitting(false);
     }
   };
 
-  return (
-    <div className="max-w-6xl mx-auto p-6 pt-24">
-      <VendorNavbar />
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Manage Lunch Menu</h1>
-        <button
-          onClick={() => {
-            setShowForm(!showForm);
-            setEditItem(null);
-            setNewItem({
-              itemName: "",
-              type: "Veg",
-              description: "",
-              imageUrl: "",
-              price: "",
-            });
-          }}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-        >
-          <PlusCircle size={18} />
-          {showForm ? "Cancel" : "Add New Item"}
-        </button>
-      </div>
+  const handleEdit = (item) => {
+    setEditingItem(item);
+    setNewItem({
+      _id: item._id,
+      itemName: item.itemName,
+      type: item.type,
+      description: item.description,
+      imageUrl: item.imageUrl,
+      price: item.price,
+    });
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-      {showForm && (
-        <div className="bg-white p-6 rounded-lg mb-8 shadow-md border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">
-            {editItem ? "Edit Item" : "Add New Item"}
-          </h2>
-          <form
-            onSubmit={handleAddOrEditItem}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Item Name*
-              </label>
+  const resetForm = () => {
+    setNewItem({
+      itemName: "",
+      type: "Veg",
+      description: "",
+      imageUrl: "",
+      price: "",
+    });
+    setEditingItem(null);
+    setShowForm(false);
+  };
+
+  return (
+    <>
+      <VendorNavbar />
+      <div className="max-w-6xl mx-auto p-4 md:p-6 pt-20 md:pt-24">
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 mb-8 shadow-sm">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold flex items-center text-gray-800">
+                <Drumstick className="mr-2 text-orange-600" />
+                Manage Lunch Items
+              </h1>
+              <p className="text-gray-600">Add and manage lunch meals</p>
+            </div>
+            <button
+              onClick={() => (showForm ? resetForm() : setShowForm(true))}
+              className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg"
+            >
+              {showForm ? <X size={18} /> : <PlusCircle size={18} />}
+              {showForm ? "Cancel Form" : "Add Lunch"}
+            </button>
+          </div>
+        </div>
+
+        {/* Form Section */}
+        {showForm && (
+          <div className="bg-white p-6 rounded-xl shadow-md border mb-8">
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              {editingItem ? (
+                <>
+                  <Pencil size={18} className="mr-2 text-orange-600" />
+                  Edit Lunch
+                </>
+              ) : (
+                <>
+                  <PlusCircle size={18} className="mr-2 text-green-600" />
+                  Add New Lunch
+                </>
+              )}
+            </h2>
+            <form
+              onSubmit={handleAddOrUpdate}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+              <input type="hidden" value={newItem._id || ""} />
+              <div>
+                <label className="text-sm font-medium">Item Name*</label>
+                <input
+                  type="text"
+                  value={newItem.itemName}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, itemName: e.target.value })
+                  }
+                  required
+                  className="w-full p-3 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Price (₹)*</label>
+                <div className="relative">
+                  <DollarSign
+                    className="absolute top-3 left-3 text-gray-400"
+                    size={16}
+                  />
+                  <input
+                    type="number"
+                    value={newItem.price}
+                    onChange={(e) =>
+                      setNewItem({ ...newItem, price: e.target.value })
+                    }
+                    required
+                    className="w-full p-3 pl-10 border rounded-lg"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Type</label>
+                <select
+                  value={newItem.type}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, type: e.target.value })
+                  }
+                  className="w-full p-3 border rounded-lg"
+                >
+                  <option value="Veg">Veg</option>
+                  <option value="Non-Veg">Non-Veg</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Description</label>
+                <textarea
+                  value={newItem.description}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, description: e.target.value })
+                  }
+                  className="w-full p-3 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Image URL</label>
+                <input
+                  type="text"
+                  value={newItem.imageUrl}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, imageUrl: e.target.value })
+                  }
+                  className="w-full p-3 border rounded-lg"
+                />
+              </div>
+              <div className="flex gap-4 mt-4 md:col-span-2 justify-end">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="text-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={formSubmitting}
+                  className="bg-orange-600 text-white px-6 py-2 rounded-lg"
+                >
+                  {formSubmitting ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Items List */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <Search size={18} />
               <input
                 type="text"
-                placeholder="Enter item name"
-                value={newItem.itemName}
-                onChange={(e) =>
-                  setNewItem({ ...newItem, itemName: e.target.value })
-                }
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search..."
+                className="p-2 border rounded-md"
               />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Price (₹)*
-              </label>
-              <input
-                type="number"
-                placeholder="0.00"
-                value={newItem.price}
-                onChange={(e) =>
-                  setNewItem({ ...newItem, price: e.target.value })
-                }
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Type
-              </label>
-              <select
-                value={newItem.type}
-                onChange={(e) =>
-                  setNewItem({ ...newItem, type: e.target.value })
-                }
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              <button
+                onClick={() => setSearchTerm("")}
+                className="text-sm text-gray-500"
               >
-                <option value="Veg">Vegetarian</option>
-                <option value="Non-Veg">Non-Vegetarian</option>
+                Clear
+              </button>
+            </div>
+            <div className="flex gap-4 items-center">
+              <Filter size={16} />
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="p-2 border rounded-md"
+              >
+                <option value="All">All</option>
+                <option value="Veg">Veg</option>
+                <option value="Non-Veg">Non-Veg</option>
+              </select>
+              <ChevronDown size={16} />
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="p-2 border rounded-md"
+              >
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="price-asc">Price (Low-High)</option>
+                <option value="price-desc">Price (High-Low)</option>
               </select>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Image URL
-              </label>
-              <input
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                value={newItem.imageUrl}
-                onChange={(e) =>
-                  setNewItem({ ...newItem, imageUrl: e.target.value })
-                }
-                className="w-full p-3 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <textarea
-                placeholder="Brief description of the item"
-                value={newItem.description}
-                onChange={(e) =>
-                  setNewItem({ ...newItem, description: e.target.value })
-                }
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                rows={3}
-              />
-            </div>
-
-            <div className="md:col-span-2 flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  setEditItem(null);
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-2"
-              >
-                <PlusCircle size={18} />
-                {editItem ? "Update Item" : "Add Item"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="flex justify-center items-center py-16">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        </div>
-      )}
-
-      {!isLoading && lunchItems.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-          <AlertCircle size={48} className="text-gray-400 mb-4" />
-          <h3 className="text-xl font-medium text-gray-700">
-            No lunch items available
-          </h3>
-          <p className="text-gray-500 mb-4">
-            Add your first lunch item to get started
-          </p>
-          {!showForm && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center gap-2"
-            >
-              <PlusCircle size={18} />
-              Add New Item
-            </button>
-          )}
-        </div>
-      )}
-
-      {!isLoading && lunchItems.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {lunchItems.map((item) => (
-            <div
-              key={item._id}
-              className="border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow bg-white"
-            >
-              <div className="relative h-48">
-                <img
-                  src={item.imageUrl || "/api/placeholder/400/320"}
-                  alt={item.itemName}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "/api/placeholder/400/320";
-                  }}
-                />
-                <div className="absolute top-2 right-2">
-                  <span
-                    className={`px-2 py-1 rounded-md text-xs font-medium ${
-                      item.type === "Veg"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {item.type}
-                  </span>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                  <h3 className="text-lg font-bold text-white">
+          {isLoading ? (
+            <p className="text-center">Loading...</p>
+          ) : filteredItems.length === 0 ? (
+            <p className="text-center text-gray-500">No items found</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredItems.map((item) => (
+                <div
+                  key={item._id}
+                  className="bg-white p-4 rounded-lg shadow-md border"
+                >
+                  <img
+                    src={item.imageUrl || "https://via.placeholder.com/150"}
+                    alt={item.itemName}
+                    className="w-full h-48 object-cover rounded-md"
+                  />
+                  <h3 className="text-lg font-semibold mt-2">
                     {item.itemName}
                   </h3>
-                </div>
-              </div>
-
-              <div className="p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-lg font-bold text-gray-900">
-                    ₹{item.price}
-                  </span>
-                  <span
-                    className={`flex items-center gap-1 text-sm font-medium ${
-                      item.isActive ? "text-red-700" : "text-green-700"
+                  <p className="text-sm text-gray-600">{item.description}</p>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="font-bold">₹{item.price}</span>
+                    <button
+                      onClick={() => handleEdit(item)}
+                      className="text-orange-600 hover:text-orange-800"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                  <button
+                    onClick={() =>
+                      handleToggleStatus(item._id, !item.available)
+                    }
+                    className={`mt-3 px-2 py-1 rounded ${
+                      item.available
+                        ? "bg-green-500 text-white"
+                        : "bg-red-500 text-white"
                     }`}
                   >
-                    {item.isActive ? (
-                      <>
-                        <X size={16} className="text-red-600" />
-                        Unavailable
-                      </>
-                    ) : (
-                      <>
-                        <Check size={16} className="text-green-600" />
-                        Available
-                      </>
-                    )}
-                  </span>
-                </div>
-
-                <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                  {item.description || "No description available"}
-                </p>
-
-                <div className="flex justify-between gap-2">
-                  <button
-                    onClick={() => {
-                      setNewItem(item);
-                      setEditItem(item._id);
-                      setShowForm(true);
-                    }}
-                    className="w-full py-2 rounded-md text-sm text-blue-600 hover:underline flex items-center justify-center gap-1"
-                  >
-                    <Pencil size={14} /> Edit
-                  </button>
-
-                  <button
-                    onClick={() => handleToggleStatus(item._id, item.isActive)}
-                    className={`w-full py-2 rounded-md text-sm font-medium transition-colors ${
-                      item.isActive
-                        ? "bg-green-50 text-green-700 hover:bg-green-100"
-                        : "bg-red-50 text-red-700 hover:bg-red-100"
-                    }`}
-                  >
-                    {item.isActive ? "Available" : "Unavailable"}
+                    {item.available ? "Available" : "Unavailable"}
                   </button>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 };
 
