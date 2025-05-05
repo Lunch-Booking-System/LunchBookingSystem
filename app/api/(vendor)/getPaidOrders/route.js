@@ -2,16 +2,15 @@ import Orders from "@/models/orders";
 import { NextResponse } from "next/server";
 import Snacks from "@/models/snacks";
 import User from "@/models/user";
+import Menu from "@/models/menu";
 import { connectMongoDB } from "@/lib/mongodb";
 // import Menu from "@/models/menu";
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
 
-
     const vendorId = searchParams.get("vendorId");
     const selectedDate = searchParams.get("selectedDate");
-
 
     if (!vendorId || !selectedDate) {
       return NextResponse.json(
@@ -46,9 +45,6 @@ export async function GET(req) {
         select: "itemName type price imageUrl",
       });
 
-    // console.log("Found orders:", orders.length);
-
-    
     const summary = orders.reduce((acc, order) => {
       order.items.forEach((item) => {
         const itemType = item.itemId?.type || "unknown";

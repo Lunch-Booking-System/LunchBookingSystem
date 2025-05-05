@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { SyncLoader } from "react-spinners";
 import * as XLSX from "xlsx";
 import VendorNavbar from "@/components/VendorNavbar";
+import { Phone } from "lucide-react";
 
 export default function VendorDashboard() {
   const router = useRouter();
@@ -97,7 +98,6 @@ export default function VendorDashboard() {
       toast.error("No orders to export");
       return;
     }
-
     const formattedData = orders.map((order) => {
       const itemsStr = order.items
         .map((item) => item.itemId?.itemName)
@@ -111,6 +111,7 @@ export default function VendorDashboard() {
         "Total Amount (₹)": order.totalAmount,
         Status: order.status,
         Company: order.customer.company,
+        PhoneNo: order.customer.phoneNo,
         Time: order.orderDate?.time || "N/A",
       };
     });
@@ -118,11 +119,9 @@ export default function VendorDashboard() {
     const worksheet = XLSX.utils.json_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
-
     const fileName = `Orders_${selectedDate}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   };
-
   const summary = orders.reduce((acc, order) => {
     order.items.forEach((item) => {
       const itemName = item.itemId?.itemName;
@@ -136,7 +135,6 @@ export default function VendorDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 pb-16 pt-20">
       <VendorNavbar />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 mb-12">
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 flex items-center">
@@ -232,10 +230,7 @@ export default function VendorDashboard() {
             </div>
           </div>
         </div>
-
-        {/* Main Content Area with Side-by-Side Sections */}
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Order Summary Section - Left Side */}
           {!loading && Object.keys(summary).length > 0 && (
             <div className="lg:w-1/2 bg-gray-200 rounded-xl shadow-lg overflow-hidden border border-gray-300">
               <div className="px-6 py-5 border-b border-gray-300 bg-gradient-to-r from-purple-50 to-gray-200">
@@ -266,28 +261,30 @@ export default function VendorDashboard() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-300">
-                    {Object.entries(summary).map(([itemName, quantity], index) => (
-                      <tr
-                        key={index}
-                        className={index % 2 === 0 ? "bg-gray-100" : "bg-white"}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {itemName}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
-                            {quantity} items
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {Object.entries(summary).map(
+                      ([itemName, quantity], index) => (
+                        <tr
+                          key={index}
+                          className={
+                            index % 2 === 0 ? "bg-gray-100" : "bg-white"
+                          }
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {itemName}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+                              {quantity} items
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    )}
                   </tbody>
                 </table>
               </div>
             </div>
           )}
-
-          {/* Orders Table Section - Right Side */}
           <div className="lg:w-1/2 bg-gray-200 rounded-xl shadow-lg overflow-hidden border border-gray-300">
             <div className="px-6 py-5 border-b border-gray-300 bg-gradient-to-r from-indigo-50 to-gray-200">
               <h2 className="text-xl font-semibold text-gray-800 flex items-center">
@@ -305,7 +302,6 @@ export default function VendorDashboard() {
               </div>
             ) : filteredOrders.length > 0 ? (
               <div>
-                {/* Desktop view */}
                 <div className="hidden md:block">
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-300">
@@ -316,6 +312,12 @@ export default function VendorDashboard() {
                             className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
                           >
                             Customer
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
+                          >
+                            Phone NO.
                           </th>
                           <th
                             scope="col"
@@ -349,15 +351,24 @@ export default function VendorDashboard() {
                           >
                             <td className="px-6 py-4">
                               <div className="text-sm font-medium text-gray-900 uppercase">
-                                {order.customer.firstName} {order.customer.lastName}
+                                {order.customer.firstName}{" "}
+                                {order.customer.lastName}
                               </div>
                               <div className="text-xs text-gray-500">
                                 {order.customer.company}
                               </div>
+
                               <div className="text-xs text-gray-400 mt-1">
                                 {order.orderDate?.time || "N/A"}
                               </div>
                             </td>
+                            <tr>
+                              <td className="px-6 py-4">
+                                <div className="text-xs text-black mt-1">
+                                  {order.customer.phoneNo || "N/A"}
+                                </div>
+                              </td>
+                            </tr>
                             <td className="px-6 py-4 text-sm text-gray-500">
                               <div className="space-y-1">
                                 {order.items.map((item, idx) => (
