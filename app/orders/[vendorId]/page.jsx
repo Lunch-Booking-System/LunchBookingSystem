@@ -70,34 +70,34 @@ export default function OrdersPage({ params }) {
     setSelectedDate(e.target.value);
   };
 
-//   const updateOrderStatus = async (orderId, newStatus) => {
-//     try {
-//       const res = await fetch("/api/updateOrderStatus", {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           orderId,
-//           status: newStatus,
-//         }),
-//       });
+  //   const updateOrderStatus = async (orderId, newStatus) => {
+  //     try {
+  //       const res = await fetch("/api/updateOrderStatus", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({
+  //           orderId,
+  //           status: newStatus,
+  //         }),
+  //       });
 
-//       if (!res.ok) {
-//         throw new Error("Failed to update order status");
-//       }
+  //       if (!res.ok) {
+  //         throw new Error("Failed to update order status");
+  //       }
 
-//       // Update the local state to reflect the change
-//       setOrders(orders.map(order => 
-//         order._id === orderId ? { ...order, status: newStatus } : order
-//       ));
-      
-//       toast.success(`Order status updated to ${newStatus}`);
-//     } catch (error) {
-//       console.error("Error updating order status:", error);
-//       toast.error("Failed to update order status");
-//     }
-//   };
+  //       // Update the local state to reflect the change
+  //       setOrders(orders.map(order =>
+  //         order._id === orderId ? { ...order, status: newStatus } : order
+  //       ));
+
+  //       toast.success(`Order status updated to ${newStatus}`);
+  //     } catch (error) {
+  //       console.error("Error updating order status:", error);
+  //       toast.error("Failed to update order status");
+  //     }
+  //   };
 
   const filteredOrders = orders.filter((order) => {
     if (selectedMealType === "all") return true;
@@ -225,6 +225,12 @@ export default function OrdersPage({ params }) {
                           scope="col"
                           className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
                         >
+                          Phone NO.
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-300 border-b border-gray-400"
+                        >
                           Items & Qty
                         </th>
                         <th
@@ -259,13 +265,19 @@ export default function OrdersPage({ params }) {
                         >
                           <td className="px-6 py-4">
                             <div className="text-sm font-medium text-gray-900 uppercase">
-                              {order.customer.firstName} {order.customer.lastName}
+                              {order.customer.firstName}{" "}
+                              {order.customer.lastName}
                             </div>
                             <div className="text-xs text-gray-500">
                               {order.customer.company}
                             </div>
                             <div className="text-xs text-gray-400 mt-1">
                               {order.orderDate?.time || "N/A"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {order.customer.phoneNo}
                             </div>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-500">
@@ -307,7 +319,9 @@ export default function OrdersPage({ params }) {
                             <div className="flex gap-2">
                               {order.status !== "ready" && (
                                 <button
-                                  onClick={() => updateOrderStatus(order._id, "ready")}
+                                  onClick={() =>
+                                    updateOrderStatus(order._id, "ready")
+                                  }
                                   className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
                                 >
                                   Ready
@@ -315,7 +329,9 @@ export default function OrdersPage({ params }) {
                               )}
                               {order.status !== "shipped" && (
                                 <button
-                                  onClick={() => updateOrderStatus(order._id, "shipped")}
+                                  onClick={() =>
+                                    updateOrderStatus(order._id, "shipped")
+                                  }
                                   className="px-3 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600 transition-colors"
                                 >
                                   Shipped
@@ -323,7 +339,9 @@ export default function OrdersPage({ params }) {
                               )}
                               {order.status !== "delivered" && (
                                 <button
-                                  onClick={() => updateOrderStatus(order._id, "delivered")}
+                                  onClick={() =>
+                                    updateOrderStatus(order._id, "delivered")
+                                  }
                                   className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
                                 >
                                   Delivered
@@ -419,7 +437,9 @@ export default function OrdersPage({ params }) {
                                 <div className="flex flex-wrap gap-2">
                                   {order.status !== "ready" && (
                                     <button
-                                      onClick={() => updateOrderStatus(order._id, "ready")}
+                                      onClick={() =>
+                                        updateOrderStatus(order._id, "ready")
+                                      }
                                       className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
                                     >
                                       Ready
@@ -427,7 +447,9 @@ export default function OrdersPage({ params }) {
                                   )}
                                   {order.status !== "shipped" && (
                                     <button
-                                      onClick={() => updateOrderStatus(order._id, "shipped")}
+                                      onClick={() =>
+                                        updateOrderStatus(order._id, "shipped")
+                                      }
                                       className="px-3 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600 transition-colors"
                                     >
                                       Shipped
@@ -435,7 +457,12 @@ export default function OrdersPage({ params }) {
                                   )}
                                   {order.status !== "delivered" && (
                                     <button
-                                      onClick={() => updateOrderStatus(order._id, "delivered")}
+                                      onClick={() =>
+                                        updateOrderStatus(
+                                          order._id,
+                                          "delivered"
+                                        )
+                                      }
                                       className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
                                     >
                                       Delivered
