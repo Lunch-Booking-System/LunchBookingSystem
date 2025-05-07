@@ -4,7 +4,6 @@ import { Plus } from "lucide-react";
 const MenuCard = ({ item, onOrder, onRemove, dayName, isAdded }) => {
   const [quantity, setQuantity] = useState(1);
 
-  // Guard clause for undefined item
   if (!item) {
     return (
       <div className="p-4 rounded-xl shadow-md border border-gray-100 bg-gray-50 flex items-center justify-center h-56">
