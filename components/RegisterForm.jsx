@@ -145,15 +145,38 @@ export default function RegisterForm() {
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </span>
           </div>
+<select
+  onChange={(e) => setAddress(e.target.value)}
+  className="w-72 md:w-full py-3 pl-5 border"
+>
+  <option value="">Select Address</option>
+  <option value="Sai Radhe Complex">Sai Radhe Complex</option>
+  <option value="The Hive">The Hive</option>
+  <option value="Floor 9 - Evolent Health International Pvt. Ltd.">Floor 9 - Evolent Health International Pvt. Ltd.</option>
+  <option value="Floor 8 - Kone Elevator India Pvt. Ltd.">Floor 8 - Kone Elevator India Pvt. Ltd.</option>
+  <option value="Floor 8 - Redbrick IT Support Limited">Floor 8 - Redbrick IT Support Limited</option>
+  <option value="Floor 7 - Zinnia Digital Service LLP">Floor 7 - Zinnia Digital Service LLP</option>
+  <option value="Floor 7 - ZF (Formerly SR Digital Service LLP)">Floor 7 - ZF (Formerly SR Digital Service LLP)</option>
+  <option value="Floor 7 - Hoerbiger India Pvt. Ltd.">Floor 7 - Hoerbiger India Pvt. Ltd.</option>
+  <option value="Floor 7 - Xpanxion International Pvt. Ltd.">Floor 7 - Xpanxion International Pvt. Ltd.</option>
+  <option value="Floor 7 - EPAM Systems India Pvt. Ltd.">Floor 7 - EPAM Systems India Pvt. Ltd.</option>
+  <option value="Floor 6 - Zensoft Services Pvt. Ltd.">Floor 6 - Zensoft Services Pvt. Ltd.</option>
+  <option value="Floor 6 - Liebherr CMCtec India Pvt. Ltd.">Floor 6 - Liebherr CMCtec India Pvt. Ltd.</option>
+  <option value="Floor 6 - Shipco IT Pvt. Ltd.">Floor 6 - Shipco IT Pvt. Ltd.</option>
+  <option value="Floor 5 - UrbanWrk Pvt. Ltd.">Floor 5 - UrbanWrk Pvt. Ltd.</option>
+  <option value="Floor 5 - Maharashtra Rail Infrastructure Development Corporation Ltd.">Floor 5 - Maharashtra Rail Infrastructure Development Corporation Ltd.</option>
+  <option value="Floor 4 - Halliburton Technology India Pvt. Ltd.">Floor 4 - Halliburton Technology India Pvt. Ltd.</option>
+  <option value="Floor 3 - Rajyoga (Techpark Private Limited)">Floor 3 - Rajyoga (Techpark Private Limited)</option>
+  <option value="Floor 3 - Conneqt Business Solutions Ltd. (Through Redbrick IT Support Ltd.)">Floor 3 - Conneqt Business Solutions Ltd. (Through Redbrick IT Support Ltd.)</option>
+  <option value="Floor 3 - Applus IDIADA">Floor 3 - Applus IDIADA</option>
+  <option value="Floor 2 - JW Consultants LLP">Floor 2 - JW Consultants LLP</option>
+  <option value="Floor 2 - Anaveo Semiconductor India Pvt. Ltd.">Floor 2 - Anaveo Semiconductor India Pvt. Ltd.</option>
+  <option value="Floor 1 - Hexagon Manufacturing Intelligence India Pvt. Ltd.">Floor 1 - Hexagon Manufacturing Intelligence India Pvt. Ltd.</option>
+  <option value="Floor 1 - Xpanxion International Pvt. Ltd.">Floor 1 - Xpanxion International Pvt. Ltd.</option>
+  <option value="Ground Floor - EKA by Pinnacle Mobility Solutions Pvt. Ltd.">Ground Floor - EKA by Pinnacle Mobility Solutions Pvt. Ltd.</option>
+  <option value="Ground Floor - Food Court">Ground Floor - Food Court</option>
+</select>
 
-          <select
-            onChange={(e) => setAddress(e.target.value)}
-            className="w-72 md:w-full py-3 pl-5 border"
-          >
-            <option value="">Select Address</option>
-            <option value="Sai Radhe Complex">Sai Radhe Complex</option>
-            <option value="The Hive">The Hive</option>
-          </select>
 
           <select
             onChange={(e) => setCompany(e.target.value)}
@@ -186,3 +209,28 @@ export default function RegisterForm() {
     </div>
   );
 }
+
+
+// Floor 9 - Evolent Health International Pvt. Ltd.
+// Floor 8 - Kone Elevator India Pvt. Ltd.
+// Floor 8 - Redbrick IT Support Limited
+// Floor 7 - Zinnia Digital Service LLP
+// Floor 7 - ZF (Formerly SR Digital Service LLP)
+// Floor 7 - Hoerbiger India Pvt. Ltd.
+// Floor 7 - Xpanxion International Pvt. Ltd.
+// Floor 7 - EPAM Systems India Pvt. Ltd.
+// Floor 6 - Zensoft Services Pvt. Ltd.
+// Floor 6 - Liebherr CMCtec India Pvt. Ltd.
+// Floor 6 - Shipco IT Pvt. Ltd.
+// Floor 5 - UrbanWrk Pvt. Ltd.
+// Floor 5 - Maharashtra Rail Infrastructure Development Corporation Ltd.
+// Floor 4 - Halliburton Technology India Pvt. Ltd.
+// Floor 3 - Rajyoga (Techpark Private Limited)
+// Floor 3 - Conneqt Business Solutions Ltd. (Through Redbrick IT Support Ltd.)
+// Floor 3 - Applus IDIADA
+// Floor 2 - JW Consultants LLP
+// Floor 2 - Anaveo Semiconductor India Pvt. Ltd.
+// Floor 1 - Hexagon Manufacturing Intelligence India Pvt. Ltd.
+// Floor 1 - Xpanxion International Pvt. Ltd.
+// Ground Floor - EKA by Pinnacle Mobility Solutions Pvt. Ltd.
+// Ground Floor - Food Court
